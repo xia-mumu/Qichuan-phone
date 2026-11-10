@@ -270,6 +270,7 @@ label.tg input{width:20px;height:20px;accent-color:var(--rose)}
     <label class="f" for="set-hue">或自己調一個顏色<input class="hue" id="set-hue" type="range" min="0" max="360" step="1"></label>
     <h2>故事</h2>
     <label class="f" for="set-name">你的名字<input id="set-name" maxlength="20"></label>
+    <label class="f" for="set-persona">我的角色設定（外貌、個性、職業、背景、和誰是什麼關係，想到什麼寫什麼）<textarea id="set-persona" placeholder="例如：27 歲，女，寫小說的，剛搬到南町。話不多，熟了會嘴人。"></textarea></label>
     <label class="f" for="set-open">開局（劇本沒寫開場時，從這裡寫起）<textarea id="set-open"></textarea></label>
     <label class="f" for="set-lore">世界書（完整設定貼在這裡，角色會照它演）<textarea id="set-lore"></textarea></label>
     <label class="tg" for="set-lorefull"><input type="checkbox" id="set-lorefull">世界書只送跟當下有關的條目（省 token）</label>
@@ -299,7 +300,7 @@ const DEFAULT_LORE="【棲川市｜世界核心】\n棲川市是臺灣中部的�
 const GAME=()=>({turn:0,time:'11月1日 星期日 09:00',loc:'棲川市',log:[],choices:[],contacts:[],notices:[],stats:{player:[],chars:[]},changes:[],summaries:[],sumTurn:0,x:[],ig:[],th:[],chats:{},lineUnread:{},album:[],accts:[],acct:null,acctOf:{x:null,ig:null,th:null},phone:[],cal:[],unread:{story:0,x:0,ig:0,th:0,notice:0,album:0,cal:0}});
 const CORE=['turn','time','loc','log','choices','contacts','notices','stats','changes','summaries','sumTurn'];
 const GAMEKEYS=Object.keys(GAME());
-let S=Object.assign({player:'夏湘',opening:'雨停的星期日早晨，你走進白汀路上的白汀書店。二樓正在辦一檔紀實攝影展。',lore:DEFAULT_LORE,api:{on:false,url:'',key:'',model:'',model2:'',img:''},opts:{sumEvery:15,social:true,year:2026},scripts:[],scriptId:null},GAME());
+let S=Object.assign({persona:'',player:'夏湘',opening:'雨停的星期日早晨，你走進白汀路上的白汀書店。二樓正在辦一檔紀實攝影展。',lore:DEFAULT_LORE,api:{on:false,url:'',key:'',model:'',model2:'',img:''},opts:{sumEvery:15,social:true,year:2026},scripts:[],scriptId:null},GAME());
 let IMG={wall:'',me:'',av:{},stk:[]};
 try{
   const old=localStorage.getItem('qichuan-phone-v1');if(old){const o=JSON.parse(old);for(const k of ['player','opening','lore'])if(o[k])S[k]=o[k]}
@@ -473,11 +474,11 @@ ${sc?`
 ${sc.text.slice(0,40000)}
 `:''}
 # 世界書
-${loreFor(scanBase()+' '+action+' '+(S.turn===0?S.opening:'')+' '+(sc?sc.text:''))}
+${loreFor(scanBase()+' '+action+' '+(S.turn===0?S.opening:'')+' '+(sc?sc.text:'')+' '+(S.persona||''))}
 
 # 玩家
 名字：${S.player}
-
+${S.persona?'玩家的角色設定（照這個寫玩家的外貌、身分與既有關係，但不替玩家決定行動、對白和感受）：\n'+S.persona.slice(0,6000)+'\n':'玩家沒有另外設定角色，身分、外貌留白，不要擅自補。\n'}
 # 目前狀態
 已完成回合：${S.turn}
 遊戲時間：${S.time}
@@ -812,7 +813,7 @@ ${loreFor(who+' '+S.loc+' '+h.slice(-6).map(m=>m.content).join(' ')+' '+S.log.sl
 # 目前
 遊戲時間：${S.time}
 劇情摘要：${sumText()}
-最近的劇情：${recentLog().slice(-3000)||'（故事剛開始）'}`;
+最近的劇情：${recentLog().slice(-3000)||'（故事剛開始）'}${S.persona?'\n\n# 玩家 '+S.player+' 的角色設定（你只知道其中你合理會知道的部分）\n'+S.persona.slice(0,3000):''}`;
   let turns=h.slice(-20);while(turns.length&&turns[0].role!=='user')turns=turns.slice(1);
   try{
     const text=await ask([{role:'user',content:rules},...turns],{lite:true,onText:({text})=>{bub.textContent=text;box.scrollTop=box.scrollHeight}});
@@ -860,13 +861,13 @@ twoTap($('sc-del'),'刪除',()=>{S.scripts=S.scripts.filter(s=>s.id!==editId);if
 
 /* ---------- settings ---------- */
 function fillSettings(){
-  $('set-name').value=S.player;$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-social').checked=!!S.opts.social;
+  $('set-name').value=S.player;$('set-persona').value=S.persona||'';$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-social').checked=!!S.opts.social;
   $('api-on').checked=!!S.api.on;$('api-url').value=S.api.url;$('api-key').value=S.api.key;$('api-model').value=S.api.model;$('api-model2').value=S.api.model2||'';$('set-lorefull').checked=!S.opts.loreFull;$('lore-info').textContent=loreStat?'上一次生成送出：'+loreStat:'';$('api-img').value=S.api.img||'';$('set-msg').textContent='';$('img-msg').textContent='';$('set-hue').value=S.opts.theme?S.opts.theme.h:346;renderThemes();
   $('api-note').textContent=IN_CLAUDE?'你現在是在 Claude 的頁面裡看這支手機，這裡對外的連線會被擋，所以自訂 API 在這裡連不到，會用 Claude 生成。把 index.html 放到自己的網站（例如 GitHub Pages）再打開，自訂 API 就能用。':'沒勾選時無法生成。接口需要允許網頁直接連線（CORS），大部分中轉站都可以。';
   const a=$('set-av');a.textContent='';a.style.backgroundImage=IMG.me?'url("'+IMG.me+'")':'';if(!IMG.me)a.textContent=[...S.player][0]||'我';
 }
 function readSettings(){
-  S.player=$('set-name').value.trim()||'夏湘';S.opening=$('set-open').value.trim()||S.opening;S.lore=$('set-lore').value;
+  S.player=$('set-name').value.trim()||'夏湘';S.persona=$('set-persona').value.trim();S.opening=$('set-open').value.trim()||S.opening;S.lore=$('set-lore').value;
   S.opts.sumEvery=Math.min(60,Math.max(3,parseInt($('set-sum').value,10)||15));S.opts.social=$('set-social').checked;S.opts.loreFull=!$('set-lorefull').checked;
   S.api={on:$('api-on').checked,url:$('api-url').value.trim(),key:$('api-key').value.trim(),model:$('api-model').value.trim(),model2:$('api-model2').value.trim(),img:$('api-img').value.trim()};save();
 }
