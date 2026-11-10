@@ -541,20 +541,23 @@ function partialStory(raw){const m=raw.match(/"story"\s*:\s*"((?:[^"\\]|\\.)*)/)
 const str=(v,d)=>typeof v==='string'&&v.trim()?v.trim():typeof v==='number'?String(v):d;
 
 /* ---------- story ---------- */
+const STATUS_HIDE=new Set(['露骨等級','掉馬速度','貼文展示','文風','代寫夏湘','回合','時間','地點']);
+function visibleStatusItems(stats){
+  return (Array.isArray(stats)?stats:[]).filter(x=>x&&x.name!=null&&x.value!=null&&!STATUS_HIDE.has(String(x.name).trim()));
+}
 function statusSnapshot(){
-  const out={turn:S.turn,time:S.time,loc:S.loc,stats:[]};
+  const out={stats:[]};
   for(const group of [S.stats&&S.stats.player,...(S.stats&&S.stats.chars||[]).map(c=>c.items)]){
     for(const v of Array.isArray(group)?group:[])if(v&&v.name!=null&&v.value!=null)out.stats.push({name:String(v.name),value:String(v.value)});
   }
   return out;
 }
 function statusElement(st){
-  const d=el('div','turn-status');const h=el('div','head','◈ 回合狀態');d.append(h);
+  const visible=visibleStatusItems(st.stats);
+  if(!visible.length)return null;
+  const d=el('div','turn-status');d.append(el('div','head','◈ 回合狀態'));
   const items=el('div','items');
-  for(const [k,v] of [['回合',st.turn],['時間',st.time],['地點',st.loc],...(st.stats||[]).map(x=>[x.name,x.value])]){
-    if(v==null||v==='')continue;
-    items.append(el('span','',k+'｜'+v));
-  }
+  for(const x of visible)items.append(el('span','',x.name+'｜'+x.value));
   d.append(items);return d;
 }
 
@@ -568,7 +571,7 @@ function renderStory(toEnd){
   }
   for(const x of S.log){
     if(x.r==='me')log.append(el('div','me',x.t));
-    else{const d=el('div','dm');d.append(el('span','tn','第 '+x.turn+' 回合'),document.createTextNode(x.t));log.append(d);if(x.status)log.append(statusElement(x.status))}
+    else{const d=el('div','dm');d.append(el('span','tn','第 '+x.turn+' 回合'),document.createTextNode(x.t));log.append(d);if(x.status){const panel=statusElement(x.status);if(panel)log.append(panel)}}
   }
   if(busy&&gen){
     const live=el('div','dm',gen.text);live.id='live';
