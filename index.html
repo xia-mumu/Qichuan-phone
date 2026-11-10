@@ -276,6 +276,8 @@ label.tg input{width:20px;height:20px;accent-color:var(--rose)}
     <label class="f" for="set-lore">世界書（完整設定貼在這裡，角色會照它演）<textarea id="set-lore"></textarea></label>
     <label class="tg" for="set-lorefull"><input type="checkbox" id="set-lorefull">世界書只送跟當下有關的條目（省 token）</label>
     <p class="note">條目用【標題】開頭，底下可以加一行「關鍵字：A,B,C」；劇情提到關鍵字時才會送出那一條。第一個 ＝＝＝ 分隔線之前的條目每次都會送。<span id="lore-info"></span></p>
+    <label class="f" for="set-storylen">主線劇情長度<select id="set-storylen"><option value="short">精簡｜200～400 字</option><option value="standard">標準｜400～700 字</option><option value="immersive">沉浸｜800～1200 字（預設）</option><option value="novel">長篇小說｜1500～2000 字</option></select></label>
+    <p class="note">只影響主線敘事，不改變 LINE 簡訊長度。隨時可切換，無須重新開局；劇本若有明確字數規定，則以劇本為準。字數為建議範圍，不強制灌水。</p>
     <label class="f" for="set-sum">每幾回合自動整理一次劇情摘要<input id="set-sum" type="number" min="3" max="60" inputmode="numeric"></label>
     <label class="tg" for="set-social"><input type="checkbox" id="set-social">每回合後，社群 App 在後台自己更新</label>
     <h2>AI 接口</h2>
@@ -304,11 +306,11 @@ const DEFAULT_LORE="【棲川市｜世界核心】\n棲川市是臺灣中部的�
 const GAME=()=>({turn:0,time:'11月1日 星期日 09:00',loc:'棲川市',log:[],choices:[],contacts:[],notices:[],stats:{player:[],chars:[]},changes:[],summaries:[],sumTurn:0,x:[],ig:[],th:[],chats:{},lineUnread:{},album:[],accts:[],acct:null,acctOf:{x:null,ig:null,th:null},phone:[],cal:[],unread:{story:0,x:0,ig:0,th:0,notice:0,album:0,cal:0}});
 const CORE=['turn','time','loc','log','choices','contacts','notices','stats','changes','summaries','sumTurn'];
 const GAMEKEYS=Object.keys(GAME());
-let S=Object.assign({persona:'',player:'夏湘',opening:'雨停的星期日早晨，你走進白汀路上的白汀書店。二樓正在辦一檔紀實攝影展。',lore:DEFAULT_LORE,api:{on:false,url:'',key:'',model:'',model2:'',img:''},opts:{sumEvery:15,social:true,year:2026},scripts:[],scriptId:null},GAME());
+let S=Object.assign({persona:'',player:'夏湘',opening:'雨停的星期日早晨，你走進白汀路上的白汀書店。二樓正在辦一檔紀實攝影展。',lore:DEFAULT_LORE,api:{on:false,url:'',key:'',model:'',model2:'',img:''},opts:{sumEvery:15,social:true,year:2026,storyLength:'immersive'},scripts:[],scriptId:null},GAME());
 let IMG={wall:'',me:'',av:{},stk:[]};
 try{
   const old=localStorage.getItem('qichuan-phone-v1');if(old){const o=JSON.parse(old);for(const k of ['player','opening','lore'])if(o[k])S[k]=o[k]}
-  const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);S=Object.assign(S,o);S.api=Object.assign({on:false,url:'',key:'',model:'',model2:'',img:''},o.api);S.opts=Object.assign({sumEvery:15,social:true,year:2026},o.opts);S.unread=Object.assign(GAME().unread,o.unread)}
+  const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);S=Object.assign(S,o);S.api=Object.assign({on:false,url:'',key:'',model:'',model2:'',img:''},o.api);S.opts=Object.assign({sumEvery:15,social:true,year:2026,storyLength:'immersive'},o.opts);S.unread=Object.assign(GAME().unread,o.unread)}
   const im=localStorage.getItem(KEY+'-img');if(im)IMG=Object.assign(IMG,JSON.parse(im));
 }catch(e){}
 if(!S.lore||S.lore.startsWith('（這裡先放一點點骨架'))S.lore=DEFAULT_LORE;
@@ -480,9 +482,10 @@ const scanBase=()=>[S.loc,S.time,S.contacts.map(c=>c.name).join(' '),S.phone.joi
 const activeScript=()=>S.scripts.find(s=>s.id===S.scriptId)||null;
 const sumText=()=>S.summaries.map(s=>'【第 '+s.from+'–'+s.to+' 回合】'+s.text).join('\n')||'（尚無）';
 const recentLog=()=>S.log.filter(x=>x.turn>S.sumTurn).slice(-40).map(x=>(x.r==='me'?'【玩家行動】':'【敘事】')+x.t).join('\n\n');
-function turnPrompt(action){
+const STORY_LENGTHS={short:'200 到 400 字',standard:'400 到 700 字',immersive:'800 到 1200 字',novel:'1500 到 2000 字'};
+ function turnPrompt(action){
   const sc=activeScript();
-  return `你是互動小說的敘事者。用繁體中文、台灣語感、第二人稱「你」書寫。文字克制、具體，寫看得見摸得到的細節。角色言行必須符合世界書；沒寫到的細節可以合理補上，但不能衝突。不要替玩家做重大決定，也不要替玩家說出他沒選擇的長篇台詞。沒有另外規定時，每回合劇情 180 到 320 字，停在玩家可以接話或行動的地方。
+  return `你是互動小說的敘事者。用繁體中文、台灣語感、第二人稱「你」書寫。文字克制、具體，寫看得見摸得到的細節。角色言行必須符合世界書；沒寫到的細節可以合理補上，但不能衝突。不要替玩家做重大決定，也不要替玩家說出他沒選擇的長篇台詞。沒有另外規定時，每回合劇情以 ${STORY_LENGTHS[S.opts.storyLength]||STORY_LENGTHS.immersive} 為目標，依情節自然調整，不為湊字數重複描寫。增加場景、人物反應與事件推進，不強迫寡言角色說長篇台詞。停在玩家可以接話或行動的地方。若載入的劇本有明確字數要求，以劇本為準。
 ${sc?`
 # 模擬器指令（劇本「${sc.name}」）
 以下是這場遊戲的規則，優先於上面的一般原則：玩法、數值、開場、文風、選項數量都照它。唯一例外是輸出格式，一律用本文最後的 JSON；指令要求的狀態欄、數值面板請放進 stats，不要寫進 story。
@@ -876,14 +879,14 @@ twoTap($('sc-del'),'刪除',()=>{S.scripts=S.scripts.filter(s=>s.id!==editId);if
 
 /* ---------- settings ---------- */
 function fillSettings(){
-  $('set-name').value=S.player;$('set-persona').value=S.persona||'';$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-social').checked=!!S.opts.social;
+  $('set-name').value=S.player;$('set-persona').value=S.persona||'';$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-storylen').value=STORY_LENGTHS[S.opts.storyLength]?S.opts.storyLength:'immersive';$('set-social').checked=!!S.opts.social;
   $('api-on').checked=!!S.api.on;$('api-url').value=S.api.url;$('api-key').value=S.api.key;$('api-model').value=S.api.model;$('api-strip').checked=!!S.api.strip;setTimeout(()=>{fillPicks();keyInfo()},0);$('api-model2').value=S.api.model2||'';$('set-lorefull').checked=!S.opts.loreFull;$('lore-info').textContent=loreStat?'上一次生成送出：'+loreStat:'';$('api-img').value=S.api.img||'';$('set-msg').textContent='';$('img-msg').textContent='';$('set-hue').value=S.opts.theme?S.opts.theme.h:346;renderThemes();
   $('api-note').textContent=IN_CLAUDE?'你現在是在 Claude 的頁面裡看這支手機，這裡對外的連線會被擋，所以自訂 API 在這裡連不到，會用 Claude 生成。把 index.html 放到自己的網站（例如 GitHub Pages）再打開，自訂 API 就能用。':'沒勾選時無法生成。接口需要允許網頁直接連線（CORS），大部分中轉站都可以。';
   const a=$('set-av');a.textContent='';a.style.backgroundImage=IMG.me?'url("'+IMG.me+'")':'';if(!IMG.me)a.textContent=[...S.player][0]||'我';
 }
 function readSettings(){
   S.player=$('set-name').value.trim()||'夏湘';S.persona=$('set-persona').value.trim();S.opening=$('set-open').value.trim()||S.opening;S.lore=$('set-lore').value;
-  S.opts.sumEvery=Math.min(60,Math.max(3,parseInt($('set-sum').value,10)||15));S.opts.social=$('set-social').checked;S.opts.loreFull=!$('set-lorefull').checked;
+  S.opts.storyLength=STORY_LENGTHS[$('set-storylen').value]?$('set-storylen').value:'immersive';S.opts.sumEvery=Math.min(60,Math.max(3,parseInt($('set-sum').value,10)||15));S.opts.social=$('set-social').checked;S.opts.loreFull=!$('set-lorefull').checked;
   S.api={on:$('api-on').checked,url:$('api-url').value.trim(),key:cleanKey($('api-key').value),model:$('api-model').value.trim(),model2:$('api-model2').value.trim(),img:$('api-img').value.trim(),list:S.api.list||[],strip:$('api-strip').checked};save();
 }
 $('set-save').onclick=()=>{readSettings();fillSettings();$('set-msg').textContent='已儲存'};
