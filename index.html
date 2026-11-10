@@ -100,6 +100,13 @@ button:disabled{opacity:.45;cursor:default}
 .acts{display:flex;gap:24px;margin-top:8px;font-size:13px;color:var(--dim)}
 .acts button[aria-pressed="true"]{color:#e0708a}
 .compose{flex:none;padding-bottom:10px}
+.profile-head{padding:20px 16px 16px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center}
+.profile-head .av{width:68px;height:68px;font-size:26px}
+.profile-head .pname{font-weight:800;font-size:19px}
+.profile-head .phandle,.profile-head .pcount{color:var(--dim);font-size:13px;margin-top:4px}
+.account-link{cursor:pointer;border-radius:8px}
+.account-link:focus-visible{outline:2px solid var(--rose);outline-offset:3px}
+.account-link:hover{color:var(--rose)}
 /* threads-style: a thread line under the avatar */
 .post.th .side{display:flex;flex-direction:column;align-items:center;gap:6px}
 .post.th .side::after{content:"";flex:1;width:2px;background:var(--line);border-radius:1px}
@@ -210,6 +217,11 @@ label.tg input{width:20px;height:20px;accent-color:var(--rose)}
   <div class="stories" id="stories" hidden></div>
   <div class="compose row"><button class="whoami" id="f-who" aria-label="切換發文帳號"></button><textarea class="field" id="f-text" rows="1"></textarea><button class="send" id="f-post" aria-label="發文"><svg viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg></button></div>
   <div class="scroll tight" id="posts"></div>
+</section>
+
+<section class="screen app" id="profile" hidden>
+  <div class="bar"><button class="ib" id="profile-back" aria-label="返回社群"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="profile-title">個人頁面</h1></div>
+  <div class="scroll tight"><div id="profile-head"></div><div id="profile-posts"></div></div>
 </section>
 
 <section class="screen app" id="line" hidden>
@@ -328,7 +340,7 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const saveImg=()=>{try{localStorage.setItem(KEY+'-img',JSON.stringify(IMG));return true}catch(e){return false}};
 const pickCore=()=>{const o={};for(const k of CORE)o[k]=S[k];return JSON.stringify(o)};
 
-let sample=null,sampleReady=false,busy=false,ctl=null,prev=null,lastAction='',picked=new Set(),chatWith=null,uid=Date.now(),cur='home',gen=null,storyErr='',curFeed='x',editId=null;
+let sample=null,sampleReady=false,busy=false,ctl=null,prev=null,lastAction='',picked=new Set(),chatWith=null,uid=Date.now(),cur='home',gen=null,storyErr='',curFeed='x',editId=null,profileHandle=null;
 (IN_CLAUDE?window.claude.use('sample'):Promise.resolve(null)).then(s=>{sample=s;sampleReady=true;updateHint()});
 async function getSample(){if(!sampleReady)await new Promise(r=>{const t=setInterval(()=>{if(sampleReady){clearInterval(t);r()}},200)});return sample}
 
@@ -448,7 +460,8 @@ function show(id){
   if(id==='home')renderHome();
   if(id==='story'){S.unread.story=0;save();renderStory(true)}
   if(id==='feed'){if(arg)curFeed=arg;S.unread[curFeed]=0;save();renderFeed()}
-  if(id==='line')renderRooms();
+  if(id==='profile')renderProfile();
+   if(id==='line')renderRooms();
   if(id==='album'){S.unread.album=0;save();renderAlbum()}
   if(id==='cal'){S.unread.cal=0;calM=null;save();renderCal()}
   if(id==='notice'){S.unread.notice=0;save();renderNotices()}
@@ -748,6 +761,32 @@ x 給 1 到 2 則，ig 給 0 到 1 則，threads 給 1 到 2 則。發文者是�
   }
   save();
 }
+function accountLink(node,p){
+  node.classList.add('account-link');node.tabIndex=0;node.setAttribute('role','button');
+  node.setAttribute('aria-label','查看 @'+p.handle+' 個人頁面');
+  const go=()=>{profileHandle=String(p.handle||'').replace(/^@/,'');show('profile')};
+  node.addEventListener('click',go);
+  node.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}});
+  return node;
+}
+function renderProfile(){
+  const k=curFeed,posts=S[k].filter(p=>String(p.handle||'').replace(/^@/,'')===profileHandle);
+  const head=$('profile-head'),box=$('profile-posts');head.textContent='';box.textContent='';
+  const p=posts[0],acct=S.accts.find(a=>a.handle===profileHandle&&(!a.app||a.app===k));
+  const name=p?p.name:acct?(acct.name||acct.handle):profileHandle;
+  $('profile-title').textContent=FEEDS[k].title+' · 個人頁面';
+  const h=el('div','profile-head');h.append(avatar(name,!!(p&&isMe(p)&&!p.anon)));
+  const info=el('div');info.append(el('div','pname',name),el('div','phandle','@'+profileHandle),el('div','pcount',posts.length+' 則貼文'));h.append(info);head.append(h);
+  if(!posts.length){box.append(el('div','empty','這個帳號目前沒有公開貼文。'));return}
+  for(const post of posts){
+    const c=el('div','post');c.append(avatar(post.name,!!(isMe(post)&&!post.anon)));
+    const body=el('div','body');body.append(el('div','who',post.name),el('div','phandle','@'+post.handle+' · '+post.time),el('p','',post.text));
+    if(post.image)body.append(shotEl(post.id,post.image));
+    body.append(el('div','acts','♥ '+(post.likes+(post.liked?1:0))+'　↻ '+post.re));
+    c.append(body);box.append(c);
+  }
+}
+$('profile-back').onclick=()=>show('feed');
 function renderFeed(){
   const k=curFeed,F=FEEDS[k];$('f-title').textContent=F.title;$('f-time').textContent=S.time;$('f-text').placeholder=F.ph;
   const ac0=S.accts.find(a=>a.id===S.acctOf[curFeed]);$('f-who').textContent=ac0?'@'+ac0.handle:S.player;
@@ -758,12 +797,12 @@ function renderFeed(){
   for(const p of S[k]){
     const mine=isMe(p)&&!p.anon;const like=el('button','','♥ '+(p.likes+(p.liked?1:0)));like.setAttribute('aria-pressed',p.liked?'true':'false');like.onclick=()=>{p.liked=!p.liked;save();renderFeed()};
     if(k==='ig'){
-      const c=el('div','igp');const top=el('div','top');const who=el('div','who',mine?p.name:p.handle);who.append(el('span','',p.time));top.append(avatar(p.name,mine),who);
+      const c=el('div','igp');const top=el('div','top');const who=el('div','who',mine?p.name:p.handle);who.append(el('span','',p.time));top.append(accountLink(avatar(p.name,mine),p),accountLink(who,p));
       const a=el('div','acts');a.append(like);const cap=el('p');cap.append(el('b','',(mine?p.name:p.handle)+' '),document.createTextNode(p.text));
       c.append(top,(p.image?shotEl(p.id,p.image):el('div','shot','［沒有照片］')),a,cap);box.append(c);continue;
     }
-    const row=el('div','post'+(k==='th'?' th':''));const side=el('div','side');side.append(avatar(p.name,mine));
-    const b=el('div','body');const who=el('div','who',p.name);who.append(el('span','',(mine?'':'@'+p.handle+' · ')+p.time));b.append(who,el('p','',p.text));
+    const row=el('div','post'+(k==='th'?' th':''));const side=el('div','side');side.append(accountLink(avatar(p.name,mine),p));
+    const b=el('div','body');const who=el('div','who',p.name);who.append(el('span','',(mine?'':'@'+p.handle+' · ')+p.time));b.append(accountLink(who,p),el('p','',p.text));
     if(p.image)b.append(shotEl(p.id,p.image));
     const a=el('div','acts');a.append(el('span','',(k==='th'?'💬 ':'↻ ')+p.re),like);b.append(a);row.append(side,b);box.append(row);
   }
