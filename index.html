@@ -532,7 +532,7 @@ const str=(v,d)=>typeof v==='string'&&v.trim()?v.trim():typeof v==='number'?Stri
 function renderStory(toEnd){
   const sc=activeScript();$('st-title').textContent=sc?sc.name:'主線';
   $('s-time').textContent=S.time;$('s-loc').textContent=S.loc;$('s-turn').textContent=S.turn?'第 '+S.turn+' 回合':'';
-  const log=$('log');log.textContent='';
+  const log=$('log');const previousScroll=log.scrollTop;log.textContent='';
   if(!S.log.length&&!busy){
     log.append(el('div','empty',sc?'這場會照劇本「'+sc.name+'」來跑。':'故事還沒開始。開局和世界書可以先到設定改，模擬器指令放在「劇本」。'));
     const b=el('button','start','開始');b.onclick=()=>playTurn('');log.append(b);
@@ -551,6 +551,7 @@ function renderStory(toEnd){
   if(storyErr)log.append(el('div','err',storyErr));
   renderChoices();$('go').disabled=busy;
   if(toEnd)log.scrollTop=log.scrollHeight;
+  else log.scrollTop=previousScroll;
 }
 function renderChoices(){
   const c=$('choices');c.textContent='';if(busy)return;
@@ -569,7 +570,7 @@ async function playTurn(action){
   const timer=setInterval(()=>{const s=$('sec');if(s&&gen)s.textContent=Math.round((Date.now()-gen.t0)/1000)+' 秒'},1000);
   if(cur==='story')renderStory(true);updateHint();
   try{
-    const r=await ask(turnPrompt(action),{json:true,signal:ctl.signal,onText:({text})=>{const p=partialStory(text);if(p&&gen){gen.text=p;const l=$('live');if(l&&cur==='story'){l.textContent=p;$('log').scrollTop=$('log').scrollHeight}}}});
+    const r=await ask(turnPrompt(action),{json:true,signal:ctl.signal,onText:({text})=>{const p=partialStory(text);if(p&&gen){gen.text=p;const l=$('live');if(l&&cur==='story'){l.textContent=p}}}});
     if(!r||typeof r.story!=='string'||!r.story.trim())throw {code:'invalid_json'};
     S.turn++;S.log.push({r:'dm',t:r.story.trim(),turn:S.turn});S.log=S.log.slice(-240);
     S.time=str(r.time,S.time);S.loc=str(r.location,S.loc);
@@ -591,7 +592,7 @@ async function playTurn(action){
     if(!e||e.code!=='cancelled'){storyErr=errText(e);if(cur!=='story')S.unread.story++}
   }
   clearInterval(timer);busy=false;gen=null;
-  if(cur==='story')renderStory(true);if(cur==='home')renderHome();updateHint();
+  if(cur==='story')renderStory(false);if(cur==='home')renderHome();updateHint();
 }
 $('go').onclick=()=>{
   if(busy)return;if(S.turn===0){playTurn('');return}
