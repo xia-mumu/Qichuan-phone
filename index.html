@@ -155,6 +155,12 @@ button:disabled{opacity:.45;cursor:default}
 .hue::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid var(--bg)}
 .hue::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid var(--bg)}
 
+.themes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px}
+.sw{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--soft)}
+.sw .chip{width:44px;height:44px;border-radius:50%;border:2px solid var(--line)}
+.sw[aria-pressed="true"] .chip{border-color:var(--fg);box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--rose)}
+.sw[aria-pressed="true"]{color:var(--fg);font-weight:700}
+
 /* settings */
 h2{font-size:13px;color:var(--silver);letter-spacing:.14em;margin:10px 0 0;font-weight:700}
 label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--soft)}
@@ -260,8 +266,8 @@ label.tg input{width:20px;height:20px;accent-color:var(--rose)}
     <h2>外觀</h2>
     <div class="btns"><div class="av me-av big" id="set-av"></div><button class="btn ghost" id="set-av-btn">換我的頭像</button></div>
     <div class="btns"><button class="btn ghost" id="set-wall">上傳桌布</button><button class="btn ghost" id="set-wall-x">用回預設桌布</button><button class="btn ghost" id="stk-clear">清除自訂貼圖</button><span class="note" id="img-msg"></span></div>
-    <label class="f" for="set-hue">主題色<input class="hue" id="set-hue" type="range" min="0" max="360" step="1"></label>
-    <div class="btns"><button class="btn ghost" id="hue-reset">回到酒紅</button></div>
+    <div class="themes" id="themes"></div>
+    <label class="f" for="set-hue">或自己調一個顏色<input class="hue" id="set-hue" type="range" min="0" max="360" step="1"></label>
     <h2>故事</h2>
     <label class="f" for="set-name">你的名字<input id="set-name" maxlength="20"></label>
     <label class="f" for="set-open">開局（劇本沒寫開場時，從這裡寫起）<textarea id="set-open"></textarea></label>
@@ -357,9 +363,18 @@ function pickImage(max,square,cb,png){const p=$('pick');p.value='';p.onchange=()
   img.onload=()=>{let w=img.width,h=img.height,sx=0,sy=0,sw=w,sh=h;if(square){const m=Math.min(w,h);sx=(w-m)/2;sy=(h-m)/2;sw=sh=m;w=h=max}else{const k=Math.min(1,max/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k)}
     const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,sx,sy,sw,sh,0,0,w,h);URL.revokeObjectURL(u);cb(c.toDataURL(png?'image/png':'image/jpeg',.82))};
   img.onerror=()=>URL.revokeObjectURL(u);img.src=u};p.click()}
+const THEMES=[['暗房酒紅',null],['雨夜暮色',{h:225,a:38,s:1}],['河岸青',{h:192,a:186,s:1}],['苔綠',{h:140,a:128,s:.9}],['薰衣草',{h:262,a:270,s:1}],['玫瑰',{h:338,a:350,s:1.25}],['舊銅',{h:28,a:36,s:1}],['墨灰',{h:220,a:215,s:.25}]];
+function themeColor(t,k){const V={'--bg':[19,5],'--surface':[18,8],'--raised':[21,9.5],'--line':[20,17],'--wine-deep':[32,25],'--wine':[33,36],'--rose':[30,51],'--fg':[17,87],'--soft':[14,75],'--dim':[5,50]};const acc=k==='--wine-deep'||k==='--wine'||k==='--rose';return 'hsl('+(acc?t.a:t.h)+','+Math.min(90,V[k][0]*(t.s||1)*(acc&&t.a!==t.h?1.5:1))+'%,'+V[k][1]+'%)'}
 function applyHue(){
-  const r=document.documentElement.style,h=S.opts.hue;const V={'--bg':[19,5],'--surface':[18,8],'--raised':[21,9.5],'--line':[20,17],'--wine-deep':[32,25],'--wine':[33,36],'--rose':[30,51],'--fg':[17,87],'--soft':[14,75],'--dim':[5,50]};
-  for(const k in V){if(h==null)r.removeProperty(k);else r.setProperty(k,'hsl('+h+','+V[k][0]+'%,'+V[k][1]+'%)')}
+  if(S.opts.hue!=null&&!S.opts.theme){S.opts.theme={h:S.opts.hue,a:S.opts.hue,s:1}}S.opts.hue=null;
+  const r=document.documentElement.style,t=S.opts.theme;
+  for(const k of ['--bg','--surface','--raised','--line','--wine-deep','--wine','--rose','--fg','--soft','--dim']){if(!t)r.removeProperty(k);else r.setProperty(k,themeColor(t,k))}
+}
+function renderThemes(){
+  const box=$('themes');box.textContent='';const cur=JSON.stringify(S.opts.theme||null);
+  for(const [name,t] of THEMES){const b=el('button','sw');b.setAttribute('aria-pressed',JSON.stringify(t)===cur?'true':'false');
+    const d=el('span','chip');d.style.background=t?'linear-gradient(135deg,'+themeColor(t,'--surface')+' 50%,'+themeColor(t,'--rose')+' 50%)':'linear-gradient(135deg,#171012 50%,#A65C6D 50%)';
+    b.append(d,el('span','',name));b.onclick=()=>{S.opts.theme=t?Object.assign({},t):null;applyHue();save();renderThemes()};box.append(b)}
 }
 function applyWall(){$('phone').style.backgroundImage=IMG.wall?'linear-gradient(rgba(16,11,13,.3),rgba(16,11,13,.62)),url("'+IMG.wall+'")':''}
 function avatar(name,mine,cls){const src=mine?IMG.me:IMG.av[name];const a=el('div','av'+(mine?' me-av':'')+(cls?' '+cls:''));if(src)a.style.backgroundImage='url("'+src+'")';else a.textContent=mine?([...name][0]||'我'):([...name].pop()||'？');return a}
@@ -818,7 +833,7 @@ twoTap($('sc-del'),'刪除',()=>{S.scripts=S.scripts.filter(s=>s.id!==editId);if
 /* ---------- settings ---------- */
 function fillSettings(){
   $('set-name').value=S.player;$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-social').checked=!!S.opts.social;
-  $('api-on').checked=!!S.api.on;$('api-url').value=S.api.url;$('api-key').value=S.api.key;$('api-model').value=S.api.model;$('api-img').value=S.api.img||'';$('set-msg').textContent='';$('img-msg').textContent='';$('set-hue').value=S.opts.hue==null?346:S.opts.hue;
+  $('api-on').checked=!!S.api.on;$('api-url').value=S.api.url;$('api-key').value=S.api.key;$('api-model').value=S.api.model;$('api-img').value=S.api.img||'';$('set-msg').textContent='';$('img-msg').textContent='';$('set-hue').value=S.opts.theme?S.opts.theme.h:346;renderThemes();
   $('api-note').textContent=IN_CLAUDE?'你現在是在 Claude 的頁面裡看這支手機，這裡對外的連線會被擋，所以自訂 API 在這裡連不到，會用 Claude 生成。把 index.html 放到自己的網站（例如 GitHub Pages）再打開，自訂 API 就能用。':'沒勾選時無法生成。接口需要允許網頁直接連線（CORS），大部分中轉站都可以。';
   const a=$('set-av');a.textContent='';a.style.backgroundImage=IMG.me?'url("'+IMG.me+'")':'';if(!IMG.me)a.textContent=[...S.player][0]||'我';
 }
@@ -831,8 +846,7 @@ $('set-save').onclick=()=>{readSettings();fillSettings();$('set-msg').textConten
 $('api-test').onclick=async()=>{readSettings();const m=$('set-msg');m.textContent='測試中…';try{const t=await ask('請只回一個字：好');m.textContent='接通了，回覆：'+t.slice(0,20)}catch(e){m.textContent=errText(e)}};
 $('set-av-btn').onclick=()=>pickImage(200,true,d=>{IMG.me=d;if(!saveImg()){IMG.me='';$('img-msg').textContent='存不下去，空間滿了。'}fillSettings()});
 $('set-wall').onclick=()=>pickImage(1400,false,d=>{const old=IMG.wall;IMG.wall=d;if(!saveImg()){IMG.wall=old;$('img-msg').textContent='這張太大存不下，換一張小一點的。'}else $('img-msg').textContent='桌布換好了';applyWall()});
-$('set-hue').oninput=e=>{S.opts.hue=+e.target.value;applyHue();save()};
-$('hue-reset').onclick=()=>{S.opts.hue=null;$('set-hue').value=346;applyHue();save()};
+$('set-hue').oninput=e=>{const h=+e.target.value;S.opts.theme={h,a:h,s:1};applyHue();save();renderThemes()};
 twoTap($('stk-clear'),'清除自訂貼圖',()=>{IMG.stk=[];saveImg();renderStks();$('img-msg').textContent='自訂貼圖清掉了'});
 $('set-wall-x').onclick=()=>{IMG.wall='';saveImg();applyWall();$('img-msg').textContent='已換回預設'};
 
