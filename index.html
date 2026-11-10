@@ -281,7 +281,8 @@ label.tg input{width:20px;height:20px;accent-color:var(--rose)}
     <h2>AI 接口</h2>
     <label class="tg" for="api-on"><input type="checkbox" id="api-on">使用我自己的 API（OpenAI 相容格式）</label>
     <label class="f" for="api-url">API 網址（到 /v1 為止）<input id="api-url" placeholder="https://example.com/v1" autocomplete="off"></label>
-    <label class="f" for="api-key">API Key<input id="api-key" type="password" autocomplete="off"></label>
+    <label class="f" for="api-key">API Key<input id="api-key" type="password" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+    <div class="btns"><button class="btn ghost" id="key-show">顯示 Key</button><span class="note" id="key-info"></span></div>
     <label class="f" for="api-model">模型名稱<input id="api-model" placeholder="例如 claude-sonnet-5-5" autocomplete="off"><select class="pick" data-for="api-model" aria-label="從清單選主線模型" hidden></select></label>
     <label class="f" for="api-model2">社群和聊天用的便宜模型（選填，沒填就跟上面一樣）<input id="api-model2" placeholder="例如 claude-haiku-5-5" autocomplete="off"><select class="pick" data-for="api-model2" aria-label="從清單選便宜模型" hidden></select></label>
     <label class="f" for="api-img">生圖模型（選填，接口要支援 /images/generations）<input id="api-img" placeholder="例如 gpt-image-1" autocomplete="off"><select class="pick" data-for="api-img" aria-label="從清單選生圖模型" hidden></select></label>
@@ -321,6 +322,7 @@ let sample=null,sampleReady=false,busy=false,ctl=null,prev=null,lastAction='',pi
 async function getSample(){if(!sampleReady)await new Promise(r=>{const t=setInterval(()=>{if(sampleReady){clearInterval(t);r()}},200)});return sample}
 
 /* ---------- asking the model: own API or Claude ---------- */
+const cleanKey=k=>String(k||'').replace(/[\s\u200b\ufeff"'“”‘’]/g,'').replace(/^Bearer/i,'').replace(/^(Authorization:?)/i,'');
 const ERR={not_granted:'你沒有允許這一頁使用 Claude。重新整理後再允許一次。',sampling_disabled:'這個帳號目前不能在頁面裡使用 Claude。',rate_limited:'用量暫時到上限了，等一下再試。',session_expired:'登入過期了，請重新登入。',refused:'這段內容被拒絕生成，換個做法試試。',invalid_json:'這次回傳的格式壞了，再送一次就好。',empty_completion:'這次沒有寫出東西，再送一次。',prompt_too_large:'世界書或劇本太長了，請刪減一些。',no_claude:'這裡連不到 Claude。請到設定填自己的 API，或在 Claude 裡打開這一頁。',api_net:IN_CLAUDE?'連不到你的 API。在 Claude 的頁面裡，外部連線會被擋；把檔案放到自己的網站後才連得到。':'連不到你的 API。請檢查網址，或這個接口是否允許網頁直接連線。',api_cfg:'API 網址、Key 和模型名稱都要填。'};
 const errText=e=>e&&e.code==='api_http'?'API 回傳錯誤：'+e.message:ERR[e&&e.code]||'連線中斷了，再試一次。';
 function parseJSON(t){
@@ -333,7 +335,7 @@ async function apiCall(msgs,o){
   const url=a.url.trim().replace(/\/+$/,'');const ep=/\/chat\/completions$/.test(url)?url:url+'/chat/completions';
   if(msgs.length>1&&msgs[0].role==='user'&&msgs[1].role==='user')msgs=[{role:'system',content:msgs[0].content},...msgs.slice(1)];
   let res;
-  try{res=await fetch(ep,{method:'POST',signal:o.signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+a.key.trim()},body:JSON.stringify({model:(o.lite&&a.model2&&a.model2.trim())||a.model.trim(),messages:msgs,stream:true})})}
+  try{res=await fetch(ep,{method:'POST',signal:o.signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+cleanKey(a.key)},body:JSON.stringify({model:(o.lite&&a.model2&&a.model2.trim())||a.model.trim(),messages:msgs,stream:true})})}
   catch(e){throw {code:e&&e.name==='AbortError'?'cancelled':'api_net'}}
   if(!res.ok){let m='';try{m=(await res.text()).slice(0,200)}catch(e){}throw {code:'api_http',message:res.status+' '+m}}
   if((res.headers.get('content-type')||'').includes('application/json')){const j=await res.json();return String(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content||'')}
@@ -717,7 +719,7 @@ $('f-who').onclick=()=>sheet(FEEDS[curFeed].title+'的帳號',()=>show('feed'),b
 const canImg=()=>!!(S.api.on&&S.api.img&&S.api.url&&S.api.key);
 async function genImage(id,desc){
   const url=S.api.url.trim().replace(/\/+$/,'').replace(/\/chat\/completions$/,'')+'/images/generations';let res;
-  try{res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+S.api.key.trim()},body:JSON.stringify({model:S.api.img.trim(),prompt:'紀實攝影風格的照片，自然光，畫面中沒有任何文字：'+desc,n:1,size:'1024x1024'})})}catch(e){throw {code:'api_net'}}
+  try{res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+cleanKey(S.api.key)},body:JSON.stringify({model:S.api.img.trim(),prompt:'紀實攝影風格的照片，自然光，畫面中沒有任何文字：'+desc,n:1,size:'1024x1024'})})}catch(e){throw {code:'api_net'}}
   if(!res.ok){let m='';try{m=(await res.text()).slice(0,200)}catch(e){}throw {code:'api_http',message:res.status+' '+m}}
   const j=await res.json();const it=j.data&&j.data[0];if(!it||!(it.b64_json||it.url))throw {code:'empty_completion'};
   const src=it.b64_json?'data:image/png;base64,'+it.b64_json:it.url;const keep=src.startsWith('data:')?'':src;
@@ -864,14 +866,14 @@ twoTap($('sc-del'),'刪除',()=>{S.scripts=S.scripts.filter(s=>s.id!==editId);if
 /* ---------- settings ---------- */
 function fillSettings(){
   $('set-name').value=S.player;$('set-persona').value=S.persona||'';$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-social').checked=!!S.opts.social;
-  $('api-on').checked=!!S.api.on;$('api-url').value=S.api.url;$('api-key').value=S.api.key;$('api-model').value=S.api.model;setTimeout(fillPicks,0);$('api-model2').value=S.api.model2||'';$('set-lorefull').checked=!S.opts.loreFull;$('lore-info').textContent=loreStat?'上一次生成送出：'+loreStat:'';$('api-img').value=S.api.img||'';$('set-msg').textContent='';$('img-msg').textContent='';$('set-hue').value=S.opts.theme?S.opts.theme.h:346;renderThemes();
+  $('api-on').checked=!!S.api.on;$('api-url').value=S.api.url;$('api-key').value=S.api.key;$('api-model').value=S.api.model;setTimeout(()=>{fillPicks();keyInfo()},0);$('api-model2').value=S.api.model2||'';$('set-lorefull').checked=!S.opts.loreFull;$('lore-info').textContent=loreStat?'上一次生成送出：'+loreStat:'';$('api-img').value=S.api.img||'';$('set-msg').textContent='';$('img-msg').textContent='';$('set-hue').value=S.opts.theme?S.opts.theme.h:346;renderThemes();
   $('api-note').textContent=IN_CLAUDE?'你現在是在 Claude 的頁面裡看這支手機，這裡對外的連線會被擋，所以自訂 API 在這裡連不到，會用 Claude 生成。把 index.html 放到自己的網站（例如 GitHub Pages）再打開，自訂 API 就能用。':'沒勾選時無法生成。接口需要允許網頁直接連線（CORS），大部分中轉站都可以。';
   const a=$('set-av');a.textContent='';a.style.backgroundImage=IMG.me?'url("'+IMG.me+'")':'';if(!IMG.me)a.textContent=[...S.player][0]||'我';
 }
 function readSettings(){
   S.player=$('set-name').value.trim()||'夏湘';S.persona=$('set-persona').value.trim();S.opening=$('set-open').value.trim()||S.opening;S.lore=$('set-lore').value;
   S.opts.sumEvery=Math.min(60,Math.max(3,parseInt($('set-sum').value,10)||15));S.opts.social=$('set-social').checked;S.opts.loreFull=!$('set-lorefull').checked;
-  S.api={on:$('api-on').checked,url:$('api-url').value.trim(),key:$('api-key').value.trim(),model:$('api-model').value.trim(),model2:$('api-model2').value.trim(),img:$('api-img').value.trim(),list:S.api.list||[]};save();
+  S.api={on:$('api-on').checked,url:$('api-url').value.trim(),key:cleanKey($('api-key').value),model:$('api-model').value.trim(),model2:$('api-model2').value.trim(),img:$('api-img').value.trim(),list:S.api.list||[]};save();
 }
 $('set-save').onclick=()=>{readSettings();fillSettings();$('set-msg').textContent='已儲存'};
 function fillPicks(){
@@ -884,7 +886,7 @@ function fillPicks(){
   }
 }
 $('api-list').onclick=async()=>{
-  const m=$('list-msg'),url=$('api-url').value.trim().replace(/\/+$/,'').replace(/\/chat\/completions$/,''),key=$('api-key').value.trim();
+  const m=$('list-msg'),url=$('api-url').value.trim().replace(/\/+$/,'').replace(/\/chat\/completions$/,''),key=cleanKey($('api-key').value);
   if(!url||!key){m.textContent='先填 API 網址和 Key。';return}
   m.textContent='載入中…';
   try{
@@ -895,7 +897,10 @@ $('api-list').onclick=async()=>{
     S.api.list=list.slice(0,500);save();fillPicks();m.textContent='載入 '+list.length+' 個模型，從下拉選單選。';
   }catch(e){m.textContent=ERR.api_net}
 };
-$('api-test').onclick=async()=>{readSettings();const m=$('set-msg');m.textContent='測試中…';try{const t=await ask('請只回一個字：好');m.textContent='接通了，回覆：'+t.slice(0,20)}catch(e){m.textContent=errText(e)}};
+const keyInfo=()=>{const k=cleanKey($('api-key').value);$('key-info').textContent=k?'目前的 Key：'+k.length+' 個字，開頭 '+k.slice(0,6)+'…':'Key 那格現在是空的'};
+$('key-show').onclick=()=>{const i=$('api-key');const sh=i.type==='password';i.type=sh?'text':'password';$('key-show').textContent=sh?'隱藏 Key':'顯示 Key';keyInfo()};
+$('api-key').addEventListener('input',keyInfo);
+$('api-test').onclick=async()=>{readSettings();$('api-key').value=S.api.key;keyInfo();const m=$('set-msg');m.textContent='測試中…';try{const t=await ask('請只回一個字：好');m.textContent='接通了，回覆：'+t.slice(0,20)}catch(e){m.textContent=errText(e)+(e&&e.code==='api_http'&&/^40[13]/.test(e.message)?'　→ 接口不認這把 Key。按「顯示 Key」確認貼進去的是完整的 Key，而且是這個接口發的。':'')}};
 $('set-av-btn').onclick=()=>pickImage(200,true,d=>{IMG.me=d;if(!saveImg()){IMG.me='';$('img-msg').textContent='存不下去，空間滿了。'}fillSettings()});
 $('set-wall').onclick=()=>pickImage(1400,false,d=>{const old=IMG.wall;IMG.wall=d;if(!saveImg()){IMG.wall=old;$('img-msg').textContent='這張太大存不下，換一張小一點的。'}else $('img-msg').textContent='桌布換好了';applyWall()});
 $('set-hue').oninput=e=>{const h=+e.target.value;S.opts.theme={h,a:h,s:1};applyHue();save();renderThemes()};
