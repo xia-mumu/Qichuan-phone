@@ -58,6 +58,10 @@ button{cursor:pointer;background:none;border:0;padding:0}
 #log{padding-top:14px}
 .dm{white-space:pre-wrap;font-size:16px;line-height:1.95;overflow-wrap:anywhere}
 .dm .tn{display:block;font-size:11px;color:var(--dim);letter-spacing:.14em;margin-bottom:2px}
+.turn-status{margin:9px 0 18px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);font-size:12px;line-height:1.65;color:var(--silver)}
+.turn-status .head{font-size:11px;letter-spacing:.08em;color:var(--rose);margin-bottom:5px;font-weight:700}
+.turn-status .items{display:flex;flex-wrap:wrap;gap:4px 12px}
+.turn-status .items span{overflow-wrap:anywhere}
 .me{align-self:flex-end;max-width:86%;background:var(--wine-deep);border:1px solid var(--wine);border-radius:18px 18px 4px 18px;padding:8px 14px;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
 .writing{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--soft)}
 .writing .sec{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--dim)}
@@ -534,6 +538,23 @@ function partialStory(raw){const m=raw.match(/"story"\s*:\s*"((?:[^"\\]|\\.)*)/)
 const str=(v,d)=>typeof v==='string'&&v.trim()?v.trim():typeof v==='number'?String(v):d;
 
 /* ---------- story ---------- */
+function statusSnapshot(){
+  const out={turn:S.turn,time:S.time,loc:S.loc,stats:[]};
+  for(const group of [S.stats&&S.stats.player,...(S.stats&&S.stats.chars||[]).map(c=>c.items)]){
+    for(const v of Array.isArray(group)?group:[])if(v&&v.name!=null&&v.value!=null)out.stats.push({name:String(v.name),value:String(v.value)});
+  }
+  return out;
+}
+function statusElement(st){
+  const d=el('div','turn-status');const h=el('div','head','◈ 回合狀態');d.append(h);
+  const items=el('div','items');
+  for(const [k,v] of [['回合',st.turn],['時間',st.time],['地點',st.loc],...(st.stats||[]).map(x=>[x.name,x.value])]){
+    if(v==null||v==='')continue;
+    items.append(el('span','',k+'｜'+v));
+  }
+  d.append(items);return d;
+}
+
 function renderStory(toEnd){
   const sc=activeScript();$('st-title').textContent=sc?sc.name:'主線';
   $('s-time').textContent=S.time;$('s-loc').textContent=S.loc;$('s-turn').textContent=S.turn?'第 '+S.turn+' 回合':'';
@@ -544,7 +565,7 @@ function renderStory(toEnd){
   }
   for(const x of S.log){
     if(x.r==='me')log.append(el('div','me',x.t));
-    else{const d=el('div','dm');d.append(el('span','tn','第 '+x.turn+' 回合'),document.createTextNode(x.t));log.append(d)}
+    else{const d=el('div','dm');d.append(el('span','tn','第 '+x.turn+' 回合'),document.createTextNode(x.t));log.append(d);if(x.status)log.append(statusElement(x.status))}
   }
   if(busy&&gen){
     const live=el('div','dm',gen.text);live.id='live';
@@ -591,6 +612,7 @@ async function playTurn(action){
     if(Array.isArray(r.contacts))S.contacts=r.contacts.filter(c=>c&&typeof c.name==='string').map(c=>({name:c.name,stage:str(c.stage,'初識'),note:str(c.note,'')}));
     if(r.stats&&typeof r.stats==='object')S.stats={player:Array.isArray(r.stats.player)?r.stats.player:[],chars:Array.isArray(r.stats.chars)?r.stats.chars:[]};
     S.changes=Array.isArray(r.changes)?r.changes.map(String):[];
+     const lastStory=S.log[S.log.length-1];if(lastStory&&lastStory.r==='dm')lastStory.status=statusSnapshot();
     for(const ph of Array.isArray(r.photos)?r.photos.slice(0,2):[])if(str(ph,'')){S.album.unshift({id:++uid,text:str(ph,''),time:S.time,turn:S.turn,fav:false});S.unread.album++}
     S.album=S.album.slice(0,300);S.phone=[];
     for(const ev of Array.isArray(r.events)?r.events:[]){const m=ev&&/(\d{1,2})月(\d{1,2})日/.exec(String(ev.date||''));const t=ev&&str(ev.title,'');if(!m||!t||S.cal.some(e=>e.m===+m[1]&&e.d===+m[2]&&e.title===t))continue;S.cal.push({id:++uid,m:+m[1],d:+m[2],title:t,src:'劇情'});S.unread.cal++}
