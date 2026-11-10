@@ -1,0 +1,843 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}img{max-width:100%}</style></head><body>
+<title>棲川手機</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: one phone-sized column; a home screen of apps, each app a full-height screen over a darkroom-safelight ground. Single dark look by choice. */
+:root{
+  color-scheme:dark;
+  --bg:#100B0D; --surface:#171012; --raised:#1D1316; --line:#33222a;
+  --wine-deep:#542B35; --wine:#793D4B; --rose:#A65C6D;
+  --fg:#E4D9DC; --soft:#C7B5BA; --silver:#AAAEB2; --dim:#857a7e;
+  --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --r:22px;
+}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.7;overflow:hidden}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+.phone{height:100%;max-width:480px;margin:0 auto;position:relative;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:
+    radial-gradient(120% 60% at 85% 8%,color-mix(in srgb,var(--wine) 55%,transparent),transparent 60%),
+    radial-gradient(90% 50% at 10% 70%,color-mix(in srgb,var(--wine-deep) 50%,transparent),transparent 65%),
+    var(--bg);background-size:cover;background-position:center}
+.screen{height:100%;display:flex;flex-direction:column;min-height:0}
+.app{background:var(--bg);margin:0 calc(-1*max(16px,env(safe-area-inset-left,0px)));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.bar{display:flex;align-items:center;gap:12px;padding-block:14px 12px;flex:none}
+.bar h1{font-size:22px;font-weight:900;margin:0;flex:1;min-width:0;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .meta{font-size:12px;color:var(--dim)}
+.ib{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--raised);border:1px solid var(--line);flex:none}
+.ib svg,.icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.scroll{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding-bottom:16px}
+.scroll.tight{gap:0}
+.empty{color:var(--dim);text-align:center;padding:40px 12px;font-size:14px}
+
+/* home */
+#home{padding-block:28px 20px;gap:22px}
+.widget{border-radius:28px;padding:22px 20px;background:linear-gradient(135deg,color-mix(in srgb,var(--rose) 38%,transparent),rgba(29,19,22,.7));border:1px solid rgba(228,217,220,.16);text-align:center;backdrop-filter:blur(8px)}
+.widget .t{font-size:13px;color:var(--soft);letter-spacing:.12em}
+.widget .clock{font-size:68px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.widget .sub{font-size:13px;color:var(--soft);display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:center}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px 10px}
+.icon{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--fg);position:relative;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.icon .tile{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(160deg,rgba(199,181,186,.3),rgba(29,19,22,.75));border:1px solid rgba(228,217,220,.18);backdrop-filter:blur(6px)}
+.icon .tile svg{width:28px;height:28px}
+.icon.main .tile{background:linear-gradient(160deg,var(--rose),var(--wine-deep))}
+.badge{position:absolute;top:-4px;right:calc(50% - 38px);min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#c9475f;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;text-shadow:none}
+.spacer{flex:1}
+.hint{font-size:12px;color:var(--soft);text-align:center;margin:0;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+
+/* story */
+.status{display:flex;gap:12px;font-size:12px;color:var(--silver);padding-bottom:10px;border-bottom:1px solid var(--line);flex:none}
+.status span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status .loc{flex:1}
+#log{padding-top:14px}
+.dm{white-space:pre-wrap;font-size:16px;line-height:1.95;overflow-wrap:anywhere}
+.dm .tn{display:block;font-size:11px;color:var(--dim);letter-spacing:.14em;margin-bottom:2px}
+.me{align-self:flex-end;max-width:86%;background:var(--wine-deep);border:1px solid var(--wine);border-radius:18px 18px 4px 18px;padding:8px 14px;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.writing{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--soft)}
+.writing .sec{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--dim)}
+.dots{display:inline-flex;gap:4px}.dots i{width:6px;height:6px;border-radius:50%;background:var(--rose);animation:bl 1.2s infinite}
+.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+@keyframes bl{0%,100%{opacity:.25}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.dots i{animation:none}}
+.link{color:var(--rose);font-size:13px;text-decoration:underline;text-underline-offset:3px}
+.err{border:1px solid var(--wine);background:var(--raised);border-radius:16px;padding:12px 14px;font-size:14px;color:var(--soft);overflow-wrap:anywhere}
+.panel{flex:none;border-top:1px solid var(--line);padding-block:10px 12px;display:flex;flex-direction:column;gap:8px}
+.choices{display:flex;flex-direction:column;gap:6px;max-height:34vh;overflow-y:auto}
+.choice{display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:8px 12px;width:100%}
+.choice .k{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--raised);font-size:12px;font-weight:700;color:var(--silver);flex:none}
+.choice b{display:block;font-size:14px;font-weight:700;line-height:1.4}
+.choice small{display:block;font-size:12px;color:var(--dim);line-height:1.4}
+.choice span{min-width:0;flex:1}
+.choice[aria-pressed="true"]{border-color:var(--rose);background:var(--wine-deep)}
+.choice[aria-pressed="true"] .k{background:var(--rose);color:#fff}
+.row{display:flex;gap:8px;align-items:flex-end}
+.field{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:10px 14px;resize:none;max-height:120px}
+.send{width:44px;height:44px;border-radius:50%;background:var(--wine);display:grid;place-items:center;flex:none}
+.send svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+button:disabled{opacity:.45;cursor:default}
+.start{align-self:center;background:var(--wine);border-radius:999px;padding:12px 28px;font-weight:700}
+
+/* feeds */
+.av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:900;flex:none;background:linear-gradient(160deg,var(--silver),#5c5559) center/cover;color:#fff;overflow:hidden}
+.av.me-av{background-image:linear-gradient(160deg,var(--rose),var(--wine-deep))}
+.av.big{width:60px;height:60px;font-size:22px}
+.post{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.post .body{min-width:0;flex:1}
+.who{font-size:14px;font-weight:700;line-height:1.4}
+.who span{font-weight:400;color:var(--dim);font-size:12px;margin-left:6px}
+.post p,.igp p{margin:4px 0 0;font-size:15px;white-space:pre-wrap;overflow-wrap:anywhere}
+.shot{margin-top:10px;border-radius:16px;border:1px solid var(--line);background:linear-gradient(160deg,#2a1b20,var(--surface));padding:28px 16px;text-align:center;font-size:13px;color:var(--soft)}
+.acts{display:flex;gap:24px;margin-top:8px;font-size:13px;color:var(--dim)}
+.acts button[aria-pressed="true"]{color:#e0708a}
+.compose{flex:none;padding-bottom:10px}
+/* threads-style: a thread line under the avatar */
+.post.th .side{display:flex;flex-direction:column;align-items:center;gap:6px}
+.post.th .side::after{content:"";flex:1;width:2px;background:var(--line);border-radius:1px}
+/* photo-style */
+.igp{padding:14px 0;border-bottom:1px solid var(--line)}
+.igp .top{display:flex;align-items:center;gap:10px}
+.igp .av{width:34px;height:34px;font-size:14px}
+.igp .shot{aspect-ratio:1/1;max-width:100%;display:grid;place-items:center;border-radius:6px;padding:24px;font-size:14px}
+.stories{display:flex;gap:14px;overflow-x:auto;padding:4px 0 12px;border-bottom:1px solid var(--line);flex:none}
+.stories div{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--soft);flex:none;max-width:64px}
+.stories .av{width:56px;height:56px;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--rose)}
+.stories span{max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* lists */
+.card{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:12px 16px}
+.card .hd{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--dim)}
+.card .hd b{color:var(--fg);font-size:14px}
+.card p{margin:4px 0 0;font-size:14px;color:var(--soft);white-space:pre-wrap;overflow-wrap:anywhere}
+.person{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 0;border-bottom:1px solid var(--line)}
+.person .nm{flex:1;min-width:0;text-align:left}.person .nm b{display:block;font-size:16px}.person .nm small{display:block;color:var(--dim);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stage{font-size:12px;color:var(--silver);border:1px solid var(--line);border-radius:999px;padding:2px 10px;flex:none}
+.dot{min-width:20px;height:20px;border-radius:10px;background:#c9475f;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 6px;flex:none}
+.bub{max-width:82%;padding:8px 14px;border-radius:18px;font-size:15px;white-space:pre-wrap;overflow-wrap:anywhere}
+.bub.them{align-self:flex-start;background:var(--raised);border:1px solid var(--line);border-bottom-left-radius:4px}
+.bub.mine{align-self:flex-end;background:var(--wine);border-bottom-right-radius:4px}
+.menu{display:flex;flex-direction:column}
+.menu button{text-align:left;padding:14px 4px;border-bottom:1px solid var(--line);font-size:16px}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.kv span:last-child{color:var(--silver);text-align:right;overflow-wrap:anywhere;min-width:0}
+
+/* album, stickers */
+.agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.ph{aspect-ratio:1/1;display:flex;align-items:flex-end;padding:8px;font-size:11px;line-height:1.45;text-align:left;overflow:hidden;position:relative;color:var(--fg)}
+.ph span{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.ph[aria-pressed="true"]::after{content:"♥";position:absolute;top:6px;right:8px;color:#e0708a;font-size:14px}
+.stks{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.stks button{font-size:30px;line-height:1.5;border-radius:12px;background:var(--surface);border:1px solid var(--line)}
+.stk{font-size:60px;line-height:1.15;text-align:center}
+.stk small{display:block;font-size:12px;color:var(--dim)}
+.stk.them{align-self:flex-start}.stk.mine{align-self:flex-end}
+.stk.plain{border:1px dashed var(--line);border-radius:16px;padding:14px 18px;font-size:14px;color:var(--soft)}
+.whoami{font-size:12px;color:var(--silver);border:1px solid var(--line);border-radius:999px;padding:10px 12px;flex:none;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.stks img{width:100%;aspect-ratio:1/1;object-fit:contain;display:block}
+.stk img{width:120px;max-width:100%;display:block}
+.shot.pic{padding:0;overflow:hidden}.shot.pic img{display:block;width:100%}
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cgrid .wd{font-size:12px;color:var(--dim)}
+.day{aspect-ratio:1/1;border-radius:50%;position:relative;font-variant-numeric:tabular-nums;border:1px solid transparent}
+.day.sel{background:var(--raised);border-color:var(--line)}
+.day.today{background:var(--wine);font-weight:700}
+.day i{position:absolute;bottom:5px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--rose)}
+.day.today i{background:#fff}
+#cal-list{display:flex;flex-direction:column;gap:10px}
+
+.hue{width:100%;height:28px;appearance:none;-webkit-appearance:none;border-radius:999px;border:1px solid var(--line);background:linear-gradient(90deg,hsl(0,45%,45%),hsl(60,45%,45%),hsl(120,45%,45%),hsl(180,45%,45%),hsl(240,45%,45%),hsl(300,45%,45%),hsl(360,45%,45%))}
+.hue::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid var(--bg)}
+.hue::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid var(--bg)}
+
+/* settings */
+h2{font-size:13px;color:var(--silver);letter-spacing:.14em;margin:10px 0 0;font-weight:700}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--soft)}
+label.f input,label.f textarea{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--fg);font-size:15px;min-width:0;width:100%}
+label.f textarea{min-height:120px;resize:vertical;line-height:1.6}
+#set-lore,#sc-text{min-height:260px}
+label.tg{display:flex;align-items:center;gap:10px;font-size:14px}
+label.tg input{width:20px;height:20px;accent-color:var(--rose)}
+.btn{background:var(--wine);border-radius:999px;padding:10px 20px;font-weight:700;font-size:14px}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--soft)}
+.btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-size:12px;color:var(--dim);margin:0}
+</style>
+
+<div class="phone" id="phone">
+<input type="file" id="pick" accept="image/*" hidden>
+
+<section class="screen" id="home">
+  <div class="widget">
+    <div class="t" id="w-turn">棲川市 · 尚未開始</div>
+    <div class="clock" id="w-clock">09:00</div>
+    <div class="sub"><span id="w-date"></span><span id="w-loc"></span></div>
+  </div>
+  <div class="grid" id="apps"></div>
+  <div class="spacer"></div>
+  <p class="hint" id="home-hint"></p>
+</section>
+
+<section class="screen app" id="story" hidden>
+  <div class="bar"><button class="ib" data-go="home" aria-label="回主畫面"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9H3z"/></svg></button><h1 id="st-title">主線</h1><button class="ib" id="menu" aria-label="選單"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div>
+  <div class="status"><span id="s-time"></span><span class="loc" id="s-loc"></span><span id="s-turn"></span></div>
+  <div class="scroll" id="log"></div>
+  <div class="panel">
+    <div class="choices" id="choices"></div>
+    <div class="row"><textarea class="field" id="act" rows="1" placeholder="或者自己寫想做的事…"></textarea><button class="send" id="go" aria-label="送出"><svg viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg></button></div>
+  </div>
+</section>
+
+<section class="screen app" id="feed" hidden>
+  <div class="bar"><button class="ib" data-go="home" aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="f-title"></h1><span class="meta" id="f-time"></span><button class="ib" id="f-refresh" aria-label="刷新動態"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7"/></svg></button></div>
+  <div class="stories" id="stories" hidden></div>
+  <div class="compose row"><button class="whoami" id="f-who" aria-label="切換發文帳號"></button><textarea class="field" id="f-text" rows="1"></textarea><button class="send" id="f-post" aria-label="發文"><svg viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg></button></div>
+  <div class="scroll tight" id="posts"></div>
+</section>
+
+<section class="screen app" id="line" hidden>
+  <div class="bar"><button class="ib" data-go="home" aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1>川聊</h1></div>
+  <div class="scroll tight" id="rooms"></div>
+</section>
+
+<section class="screen app" id="chat" hidden>
+  <div class="bar"><button class="ib" data-go="line" aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="c-name"></h1><span class="meta" id="c-stage"></span></div>
+  <div class="scroll" id="bubbles"></div>
+  <div class="panel"><div class="stks" id="stks" hidden></div><div class="row"><button class="ib" id="c-stk" aria-label="貼圖"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14c1 2 7 2 8 0M9 9.5v.5M15 9.5v.5"/></svg></button><textarea class="field" id="c-text" rows="1" placeholder="傳訊息…"></textarea><button class="send" id="c-send" aria-label="傳送"><svg viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg></button></div></div>
+</section>
+
+<section class="screen app" id="people" hidden>
+  <div class="bar"><button class="ib" data-go="home" aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1>聯絡人</h1></div>
+  <p class="note">點頭像換照片，點名字傳訊息。</p>
+  <div class="scroll tight" id="contacts"></div>
+</section>
+
+<section class="screen app" id="cal" hidden>
+  <div class="bar"><button class="ib" data-go="home" aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="cal-title"></h1><button class="ib" id="cal-prev" aria-label="上個月"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><button class="ib" id="cal-next" aria-label="下個月"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>
+  <p class="note" id="cal-today"></p>
+  <div class="scroll" style="padding-top:12px"><div class="cgrid" id="cal-grid"></div><div id="cal-list"></div></div>
+  <div class="panel"><div class="row"><textarea class="field" id="cal-text" rows="1" placeholder="在選的這天加一件事…"></textarea><button class="send" id="cal-add" aria-label="加入行事曆"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+</section>
+
+<section class="screen app" id="album" hidden>
+  <div class="bar"><button class="ib" data-go="home" aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1>相簿</h1><span class="meta" id="a-count"></span><button class="btn ghost" id="a-fav">只看收藏</button></div>
+  <div class="scroll"><div class="agrid" id="photos"></div></div>
+</section>
+
+<section class="screen app" id="notice" hidden>
+  <div class="bar"><button class="ib" data-go="home" aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1>通知</h1></div>
+  <div class="scroll" id="notices"></div>
+</section>
+
+<section class="screen app" id="scripts" hidden>
+  <div class="bar"><button class="ib" data-go="home" aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1>劇本</h1><button class="btn" id="sc-new">新增</button></div>
+  <p class="note">把模擬器／文遊指令貼成一本劇本，主線就會照它的規則、數值和開場來跑。</p>
+  <div class="scroll" id="sc-list" style="padding-top:12px"></div>
+</section>
+
+<section class="screen app" id="sedit" hidden>
+  <div class="bar"><button class="ib" data-go="scripts" aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1>編輯劇本</h1></div>
+  <div class="scroll">
+    <label class="f" for="sc-name">劇本名稱<input id="sc-name" maxlength="30"></label>
+    <label class="f" for="sc-text">模擬器指令<textarea id="sc-text" placeholder="把指令整段貼在這裡：規則、數值、開場、輸出要求都可以。"></textarea></label>
+    <div class="btns"><button class="btn" id="sc-save">儲存</button><button class="btn ghost" id="sc-del">刪除</button></div>
+  </div>
+</section>
+
+<section class="screen app" id="sheet" hidden>
+  <div class="bar"><button class="ib" id="sheet-back" aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="sheet-title"></h1></div>
+  <div class="scroll" id="sheet-body"></div>
+</section>
+
+<section class="screen app" id="settings" hidden>
+  <div class="bar"><button class="ib" data-go="home" aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h1>設定</h1></div>
+  <div class="scroll">
+    <h2>外觀</h2>
+    <div class="btns"><div class="av me-av big" id="set-av"></div><button class="btn ghost" id="set-av-btn">換我的頭像</button></div>
+    <div class="btns"><button class="btn ghost" id="set-wall">上傳桌布</button><button class="btn ghost" id="set-wall-x">用回預設桌布</button><button class="btn ghost" id="stk-clear">清除自訂貼圖</button><span class="note" id="img-msg"></span></div>
+    <label class="f" for="set-hue">主題色<input class="hue" id="set-hue" type="range" min="0" max="360" step="1"></label>
+    <div class="btns"><button class="btn ghost" id="hue-reset">回到酒紅</button></div>
+    <h2>故事</h2>
+    <label class="f" for="set-name">你的名字<input id="set-name" maxlength="20"></label>
+    <label class="f" for="set-open">開局（劇本沒寫開場時，從這裡寫起）<textarea id="set-open"></textarea></label>
+    <label class="f" for="set-lore">世界書（完整設定貼在這裡，角色會照它演）<textarea id="set-lore"></textarea></label>
+    <label class="f" for="set-sum">每幾回合自動整理一次劇情摘要<input id="set-sum" type="number" min="3" max="60" inputmode="numeric"></label>
+    <label class="tg" for="set-social"><input type="checkbox" id="set-social">每回合後，社群 App 在後台自己更新</label>
+    <h2>AI 接口</h2>
+    <label class="tg" for="api-on"><input type="checkbox" id="api-on">使用我自己的 API（OpenAI 相容格式）</label>
+    <label class="f" for="api-url">API 網址（到 /v1 為止）<input id="api-url" placeholder="https://example.com/v1" autocomplete="off"></label>
+    <label class="f" for="api-key">API Key<input id="api-key" type="password" autocomplete="off"></label>
+    <label class="f" for="api-model">模型名稱<input id="api-model" placeholder="例如 claude-sonnet-5-5" autocomplete="off"></label>
+    <label class="f" for="api-img">生圖模型（選填，接口要支援 /images/generations）<input id="api-img" placeholder="例如 gpt-image-1" autocomplete="off"></label>
+    <p class="note" id="api-note"></p>
+    <div class="btns"><button class="btn" id="set-save">儲存設定</button><button class="btn ghost" id="api-test">測試接口</button><span class="note" id="set-msg"></span></div>
+    <p class="note">進度、圖片和 API Key 都只存在這台裝置的瀏覽器裡，換裝置或清除瀏覽資料就會不見。</p>
+  </div>
+</section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e};
+const KEY='qichuan-phone-v2';
+const IN_CLAUDE=!!(window.claude&&window.claude.use);
+const DEFAULT_LORE="【棲川市｜世界核心】\n棲川市是臺灣中部的架空現代城市，與臺北、臺中等真實城市並存，沿棲川河發展。\n・北側：棲川大學與大學生活圈。\n・中東側：中央區，行政、司法、醫療、商業核心。\n・南側：南町與舊城。\n・西側與沿河：住宅區與河濱。\n・東側：丘陵與山區。\n類型為「犯罪 × 日常」：居民有工作、朋友、家庭與生活，案件只是城市的一部分，玩家可以選擇是否進入。\n一切遵循現代臺灣的法律、醫療、司法與生活常識。世界中不存在魔法、超能力、穿越、系統技能、讀心或命定伴侶。\n\n【生活質感】\n所有場景維持現代臺灣的生活感：騎樓、機車、公車、捷運、YouBike、便利商店、夜市、傳統市場、早餐店、夏季午後雷雨、颱風、潮濕的梅雨季、密集街區、老公寓與新大樓並存。\n天氣與季節依日期自然變化。颱風、豪雨會影響交通、上班上課與店家營業，角色會依現實常識反應（停班停課、改期、叫外送），不把天氣當作純粹的氣氛裝飾。\n\n【世界運作與玩家自主】\n・NPC 不是待機角色。玩家不在場時，他們照常上班、值班、上課、開會、見朋友、處理家庭，也可能沒空、遲到或錯過訊息。\n・不得替玩家決定身分、行動、對白、感受、喜好，也不得替玩家決定是否答應或相信某件事。\n・同校、同城、同行不代表熟識。初次互動時，若沒有設定既往關係，雙方就是陌生人。\n・日期、季節、學期、年度活動依時間自然進行，不為私人劇情改期。\n・已確立的店名、地點、職業、稱呼保持一致，不隨對話漂移。\n\n【資訊規則】\n所有人都不是全知，只知道合理取得的資訊：親眼所見、聽聞、他人告知、合法文件、職權範圍、公開新聞、專業合作、合理推理。\n不因熟識而自動共享的資訊：私人聊天內容、第三人的秘密、病歷與個人醫療資料、未公開案件、警方偵查機密、法醫限制資料、法院非公開資訊。\n朋友群組聊天不代表可以分享各自的工作機密。角色可以猜錯、誤會、說謊、遺漏，也可能根本不知道某件事。\n\n【關係發展規則】\n・不預設戀愛、命中注定或官方男女主角，也不是所有人都對玩家有興趣。\n・禮貌、同事合作、互相欣賞、專業認同、朋友關心，都不自動等於戀愛。\n・關係可能是：陌生人、認識的人、同事、合作者、朋友、摯友、依賴、曖昧、戀愛、疏遠、衝突、結束。\n・每一種關係都需要實際互動、共同經驗、人格相容、時間、選擇、界線與誠實來支撐，不會因為幾句話就跳級。\n\n【專業分工】\n各專業不得越權，也不得互換職權：\n・犯罪學者（徐汀云）：提供犯罪行為分析與學術意見，無搜索、逮捕、指揮偵查權，不能任意調閱警方資料。\n・刑警（杜今朝）：負責刑事偵查、案件調查、現場行動與警方協調。\n・法醫（游未遲）：負責相驗、解剖、死因與死亡時間判讀，不抓人、不搜索、不指揮偵查。\n・辯護律師（程不言）：負責法律程序、閱卷、當事人會談與辯護策略，不是警察、檢察官或法官。\n・環境顧問（林晏洄）：負責環境評估與現勘，沒有政府強制權。\n・紀實攝影師（聞止水）：不是案件專業角色，沒有警方權限。\n・彩繪修復師（蘇柏欽）：負責廟宇彩繪、補色、紋樣與神像彩繪修復；木雕、石雕、結構、泥作、電力屬於其他師傅。\n\n【敘事一致性】\n・角色不得串職業或借用彼此的資料：徐汀云不是警察或律師，游未遲不是刑警，程不言不是檢察官，林晏洄不在棲大任教，杜今朝不是法醫，蘇柏欽不是全能工匠。\n・姓名、年齡、職業、外貌、家人、寵物不可互換。\n・設定沒有寫到的家庭、住處、前任、創傷、秘密一律留白，不為了戲劇性硬補。\n・角色的性格不需要靠悲慘身世成立，不擅自添加重大創傷、虐待、死亡或狗血身世。\n・寵物是日常生活的一部分，不任意當作案件線索。\n\n【固定角色索引】\n徐汀云 31｜棲川大學犯罪學副教授\n游未遲 32｜法醫病理醫師\n林晏洄 30｜澄野環境顧問\n聞止水 31｜紀實攝影師\n程不言 33｜刑事辯護律師\n杜今朝 38｜刑警\n簡牧陽 30｜空間設計師\n蘇柏欽 30｜廟宇彩繪／神像修復師（明德佛具彩繪）\n傅承億 30｜中央車站地下道的街友，自稱傅氏控股集團董事長\n陸承澤 32｜隔壁地下道的街友，自稱陸氏資本創辦人，傅承億的宿敵兼損友\n許又青 36、梁策 34｜棲大犯罪學助理教授\n白榆 26｜犯罪學博士生\n沈藤 45、周蛹若 29｜法醫病理醫師；陳紹安 35｜解剖技術員；許卿荷 40｜法醫行政\n林潤｜社工，林晏洄的長期伴侶\n徐汀禾 27｜出版社編輯，徐汀云的妹妹\n何映真 36｜食品品牌行銷企劃，杜今朝的前妻\n蘇明德 58｜神像修復、安金師傅；陳麗珠 56｜舊城美容美髮店老闆；林冠宇 23｜明德佛具彩繪學徒\n\n＝＝＝ 地點 ＝＝＝\n\n【地理骨架】\n棲川河穿城而過，跨河橋梁有青川橋、南川橋、新生橋。東側接近丘陵與山區（南陵山）。棲川車站為主要交通節點。\n公車路線、捷運／輕軌路線、各橋的精確位置與道路名稱皆未定義，不擅自補設。\n\n【中央區與中央公園】\n中央區是城市的行政、司法、醫療與商業核心：市政府、辦公大樓、百貨、商場、電影院、餐廳、警政單位、法院、醫院、法醫與司法相關單位、大眾交通節點。\n中央公園：核心區附近的大型公共綠地，供市民散步、運動、休息。\n\n【南町】\n城市裡最有生活感與年輕文化的街區。舊建築與翻修店面並存，有咖啡館、古著店、小酒館、Live House、刺青工作室、選物店、書店、深夜餐館、老公寓與小型工作室。常有藝文與次文化活動。不是純觀光商圈，仍有居民與舊街生活。\n・半醒：南町巷內的小酒館，摯友群偶爾聚會的地方。老闆、歷史、營業時間、菜單未定義。\n・未眠書房：老屋改建的獨立書店，有二手書與閱讀區，書類以文學、社會科學、攝影為主。老闆、歷史、營業時間未定義。\n\n【舊城區與榕安市場】\n較早形成的生活區：傳統住宅、老店、市場、廟宇、窄巷、早餐小吃、老式街屋。\n榕安市場：舊城的傳統市場與臺灣小吃聚集地，周邊有早餐店、麵店、豆花、傳統小吃與日用品店。\n舊城不是完整保存的觀光老街。廟宇、傳統市場、老公寓、透天厝、早餐店、五金行、診所、香舖、佛具店與後來的新店混在同幾條街上。街道偏窄，騎機車和步行方便。早晨市場熱鬧，中午有人坐在櫃檯吃便當，傍晚居民買晚餐，夜裡鐵門一間間拉下。\n居民之間有長期形成的熟悉感，但不是人人互相認識、監視彼此。廟會與祭典只在特定時間影響生活；廟宇與民俗不自動產生靈異事件。舊城也持續變化：店會關、老屋會翻修、新店會開。\n\n【明德佛具彩繪】\n蘇家的工作室，位於舊城，以父親蘇明德的名字命名。不是觀光展示館，也不是文青工作室。裡面有木製工作檯、塑膠椅、顏料、金箔、工具、洗淨晾乾的筆、施工用品、尚未完成的神像與修復物件。空氣裡混著木頭、顏料、線香與灰塵。熟客可能站在門口聊天，有人送飲料，學徒整理工具。\n業務：廟宇彩繪、補色、舊有紋樣修復、神像修復與安金。另有工程貨車。\n人員：蘇明德（神像修復、安金）、蘇柏欽（彩繪、修復）、學徒林冠宇。大型廟宇工程通常是多工種合作。\n\n【棲川河濱公園】\n西側住宅與河岸區域，有河堤、步道、自行車道、草地與少量店家。夜間相對安靜，居民常在這裡散步、慢跑、騎車、放空。\n\n【住宅區】\n住宅型態：高樓住宅、中高價社區、一般公寓與老公寓、河岸住宅、大學生活圈租屋。\n青硯住宅區：安靜的中高價住宅區，生活機能完整。注意：徐汀云不住青硯，他住市區高樓。\n南町舊城：老公寓與新式店家混合的生活街區。\n\n【棲川車站】\n城市的主要交通節點，周邊有商業設施、餐廳、旅館、公寓、通勤人流、公車、計程車與轉乘設施，是外地人進入棲川最自然的抵達點。林晏洄住在車站生活圈的電梯大樓。\n\n【其他地點】\n・東側山區：已命名的是南陵山與登山／健行步道，其他山區地名未定義。\n・白川廣場：大型公共商業廣場，含百貨、影城、書店、餐廳、超市與商辦。\n・港口與棲川濕地：只確認名稱，提及時保持概略。\n・春水麵店：棲大附近的老店，經營二十多年，老公寓一樓騎樓下的固定麵攤。\n\n＝＝＝ 棲川大學 ＝＝＝\n\n【棲川大學】\n簡稱棲大，國立綜合型大學，位於城市北側。校內有教學大樓、研究室、中央圖書館、學生活動中心、學生餐廳、校園書店、大學站，以及鏡湖、鏡湖步道與鏡湖草地。校外有租屋區與老店。\n學期：第一學期約 9 月至翌年 1 月，第二學期約 2 月至 6 月，7 至 8 月暑期。教授與研究生在假期仍有研究、寫作、審查、指導與行政工作，不會因為玩家到校就一定出現。\n年度活動：3 月空白講堂週；4 月換位盃（系際競賽）；5 月社團成果季；6 月鏡湖告別週／畢業季；9 月百社開箱夜／迎新；10 月第三個週末校慶開門日；11 月期中、研討會；12 月未完成展。\n\n＝＝＝ 城市六大盛事 ＝＝＝\n・3 月最後兩個週末｜棲川花窗節：舊城、榕安市場與部分書店街區。花窗點燈、街區裝飾、花市、小型市集。\n・5 月第三個週末（約 3 日）｜雙岸百味祭：棲川河兩岸。河岸飲食、攤位、百味護照。\n・8 月第二個星期六｜南町不眠夜：現場演出、朗讀、店家延長營業，部分店家一路開到早餐時段。\n・9 月第三個星期六｜彩虹過橋節暨同志遊行：白川廣場、跨河橋梁與河岸。遊行、倡議、市集。\n・11 月前兩個週末｜山城回聲祭：東側山區、棲大與城市公共空間。聲景散步、小型音樂會。\n・12 月最後一個星期五｜千窗留燈夜：市場、南町與自願參與的住宅。暖燈、窗邊燈飾、年度感謝留言，不是跨年煙火。\n盛事會改變人流、交通與店家營業時間，但不強迫任何角色參與。\n\n＝＝＝ 機構 ＝＝＝\n・棲川司法園區：地方法院、地方檢察署集中區。程不言常在這裡閱卷、開庭。法院依法認定的結果可以與實際真相不同。\n・警政體系：棲川市警察局刑事警察大隊是杜今朝的工作地點。警方資訊不因私人朋友關係自動分享，警權受程序、證據與法律約束。\n・棲川醫學中心：大型教學醫院。病歷不因熟識而共享。\n・法醫體系：負責相驗、解剖、病理判讀、死因與死亡方式。判讀時區分「確定」「可能」「無法判斷」，不精確到不合理的程度。游未遲的行政隸屬未鎖定。\n・澄野環境顧問：林晏洄任職的公司，做環境評估、永續規劃、現勘、利害關係人溝通。沒有公權力。\n\n＝＝＝ 案件 ＝＝＝\n玩家輸入「案件」或「新案件」時才啟動案件生成。生成時一次確定被害者、真兇、動機、手法、時間線、3 至 6 名嫌疑人、不在場證明、物證、證詞、真假線索與關鍵突破口。案件一經生成即真相鎖定，不因玩家猜測或劇情需要更改；必須有可被發現的證據鏈，不得臨時生出關鍵證據。\n固定角色（徐汀云、游未遲、林晏洄、聞止水、程不言、杜今朝、簡牧陽、蘇柏欽、許又青、梁策、白榆等）不得被指定為真兇、共犯或幕後主使；他們可以是協助者、證人或被捲入者。\n\n＝＝＝ 角色 ＝＝＝\n\n【徐汀云】\n31 歲，男，187cm，INTJ。棲川大學犯罪學副教授，也是警方的外部犯罪行為分析顧問。\n外貌：黑色短髮，深灰棕色的窄長眼，戴薄框眼鏡；衣著深色、簡潔。\n性格：冷靜、精準、重證據，不輕信表象。有乾燥的冷幽默，會吐槽，偶爾也會犯傻。對學生嚴格，但會實際幫忙。說話簡潔，不假裝自己能讀心。\n生活：住市區高樓，兩房兩廳。養一隻黑色睫角守宮 Mochi。愛吃甜食，尤其是焦糖布丁。不抽菸。\n人際：摯友群的中心人物；研究助理白榆稱他「老師」；同系同事許又青、梁策。\n家人：父親徐明崇（59，數學教師）、母親葉蘊（57，圖書館員）、妹妹徐汀禾（27，出版社編輯）。家人其餘細節未定義，不是推動戀愛劇情的工具。\n\n【游未遲】\n32 歲，男，183cm。法醫病理醫師。\n外貌：深棕色半長髮，單眼皮，右眼角有淚痣；常穿寬鬆的深色襯衫。\n性格：平時安靜、散漫、嘴賤、冷幽默、社交能量低。工作時精確謹慎，尊重死者與證據，不超出證據亂下結論。長期接觸死亡但沒有麻木，某些案件仍會讓他難受、憤怒或疲憊，通常自行消化。不認為自己比一般人更「看透人生」。工作時高度專業，下班後像失去骨頭一樣陷進沙發；被朋友約週末早上八點出門會露出真正痛苦的表情。\n界線：可能值班、臨時被通知案件，但不是 24 小時待命的劇情工具人。\n生活：獨居市區，約 22 坪兩房一廳，沙發是他最重要的棲息地。家裡有正常生活痕跡，不是陰暗的法醫洞穴。會做飯但常懶得做，愛叫外送。養黑貓阿黑。\n人際：徐汀云的多年好友，能互相吐槽；常被林晏洄拖去各種活動；和聞止水能安靜共處；和程不言說話都很直接。稱資深法醫沈藤為「沈老師」。\n家人：父親游建峰（60）、母親林慧真（58），其餘未定義，不會催婚或過度介入感情。\n\n【林晏洄】\n30 歲，男，178cm，泛性戀。澄野環境顧問，會出差。\n外貌：粉紫色及肩髮，中性氣質，很重視穿搭；現勘時改穿實用裝備。\n性格：自在、敏銳、社交自然、話多。在熟人面前嘴欠，有點惡趣味，但有原則。重視自由、知情同意、透明與界線，遇到不尊重或權力不對等會直接表態。\n生活：住棲川車站生活圈的電梯大樓，三房兩廳兩衛，獨居。\n感情：與林潤（女，社工）是長期穩定伴侶，為雙方知情、同意、有明確界線的開放式關係。這不等於對所有人調情或沒有承諾。林潤有自己的工作與生活，不是情敵或障礙。兩人曾互稱「小蝰」「小恐龍」。\n\n【聞止水】\n31 歲，女。紀實／紀錄攝影師，題材涉及人物、社會議題、城市紀錄與長期影像計畫，常帶著相機。\n外貌：黑色及肩短髮，纖瘦清秀，素顏感，氣質偏冷。戴銀色耳骨夾。\n性格：安靜、俐落、理性、說話直。觀察力高，但不冷漠。常是朋友群裡不陪鬧到底、能用一句話終止鬧劇的人。\n人際：與徐汀云的交情從大學時期延續至今；與游未遲可以安靜共處，不需要一直找話題。摯友群成員。\n未定義：住處、家庭、感情背景、工作室，不擅自補設。\n\n【程不言】\n33 歲，男。刑事辯護律師，在律所、法院、閱卷與當事人會談之間工作。\n外貌：高瘦斯文，黑色自然捲，戴黑框眼鏡。\n性格：話多、直接、愛吐槽、反應快、實務感強。脾氣其實不好，容易對荒謬的事暴躁。思考清晰，重視程序與證據。\n人際：因工作與案件合作，與徐汀云成為長期摯友；和杜今朝職業立場有張力，可以針鋒相對，私下維持尊重。摯友群成員。\n未定義：住處、家庭、感情背景。\n\n【杜今朝】\n38 歲，男，185cm。棲川市警察局刑事警察，資深偵查成員，警方與外部專業人士的重要聯絡窗口。離異（29 歲結婚，34 歲離婚），無子女，目前單身。\n外貌：五官深邃端正，英俊帶歲月感。深黑短髮，鬢角有極少量灰髮。深棕眼帶琥珀色調，眼尾略垂，平時沉靜帶倦意。小麥色皮膚，寬肩厚背，雙手骨節分明、掌心有薄繭。左眉尾有一道很淡的舊疤，下巴偶有鬍渣，戴一只用了多年的深色腕錶。聲音低沉。\n性格：沉穩、可靠、溫和、務實、不拘小節，責任感強，情感表達略笨拙。不愛當焦點，習慣聽。幽默來自一本正經的回答與慢半拍的反應，不嘴欠、不挖苦。擅長照顧人，卻不擅長被照顧，被關心時下意識說「我沒事」。\n職業：熟悉現場勘查、詢問、資料整合與跨單位協調。不是靠直覺看穿謊言的天才，尊重法醫、鑑識、犯罪學的專業判斷。反對刑求、非法取證與洩漏偵查資訊。緊急時訊息極短，例如「下樓。」\n生活：家裡以深木色、灰、暖白為主。做飯手藝不錯，擅長家常菜。喜歡老電影、散步、偶爾開車去郊外，休假會去傳統市場買菜。\n隱藏背景（勿主動揭露）：曾參與一件重大刑案，數年後的新資訊讓他懷疑當年是否過早鎖定單一嫌疑人，因此高度警惕確認偏誤；真相未定，不得預設他違法或掩蓋。\n戀愛觀：成熟可靠、成年人的純情、表達笨拙。慢熱但不吊人胃口；可靠不等於控制；面對直球會沉默一下才低聲回應；不再保證做不到的事，有突發勤務會主動告知；不查手機、不限制交友，會吃醋但先沉默整理。曖昧階段會坦白自己離過婚、與前妻是朋友。\n\n【何映真】\n36 歲，女，食品品牌行銷企劃，杜今朝的前妻，現為好友。爽朗大方、務實、偶爾固執。兩人交往三年後結婚，婚姻五年；臨時勤務與不定作息逐漸侵蝕婚姻，由她提出離婚，杜今朝尊重。現在偶爾分享近況、互相幫忙，沒有復合期待或曖昧。她不是情敵、反派或感情障礙。\n\n【簡牧陽】\n30 歲，男，186cm。空間設計師，負責空間規劃、繪圖、丈量、材料、客戶溝通、現勘與施工協調，工作上可靠專業。\n外貌：暖棕色頭髮，親近感強。\n性格：像黃金獵犬：外向、愛笑、嘴欠、熟悉後很黏、熱情直接。\n生活：養一隻純橘貓阿董，是家裡真正的董事長，正常橘貓體型。\n人際：不在摯友群裡，也不在棲大工作。與蘇柏欽因工作認識，曾在老屋、傳統空間的案子合作，是工作熟人／專業朋友。\n未定義：住址、家庭、朋友圈、感情史。\n\n【蘇柏欽】\n暱稱阿欽，學徒稱他「欽哥」。30 歲，男，182cm，生日 8 月 16 日，在舊城出生長大。廟宇彩繪／神像修復師，在家裡的工作室「明德佛具彩繪」工作。住舊城附近的老公寓，獨居，離工作室機車 5 分鐘。\n外貌：高大精實，體態來自長期工作與搬運。膚色深小麥到古銅。黑色短髮偏粗、自然微亂。濃眉，深棕色長眼、內雙，嘴唇稍厚。手掌大、手指修長，有薄繭、小傷口，偶爾殘留洗不掉的顏料。常戴簡單銀飾。\n穿著：招牌是花襯衫，喜歡牡丹、老虎、鶴、錦鯉、火焰、熱帶植物等鮮明圖案，他本人真的覺得很好看。常配黑色背心或 T 恤、深色工裝褲、舊球鞋或拖鞋。\n性格：有生活熱度、鬆弛、直接，帶一點痞氣。對陌生人有基本禮貌，熟了之後話很多，會吐槽、講垃圾話，笑聲不小。有脾氣，討厭外行裝懂、質疑他的專業、浪費材料、亂動他的工具、把幫忙當理所當然。對人的耐性普通，對工作的耐性極高。照顧人的方式是順手做掉：接過重物、修東西、順便買、順路載一程；被長期當成義務會直接拒絕。\n語言：臺灣華語加臺語。對陌生人、客戶華語較多；對家人朋友、放鬆或情緒直接時臺語增加。完整臺語台詞必須附國語翻譯，寫成「臺語原句。（國語翻譯。）」。口頭禪：「啊就順紲啊。（啊就順便啊。）」\n繞路：他的感情變化看「繞路」。真正的順路不算；為某人額外改變動線、時間或行程才算，嘴上仍會說「順路啦」。不強制每天發生。\n戀愛觀：不是很會談戀愛，只是談過。不會因牽手擁抱就結巴當機，也不是情聖，看不懂暗示會直接問。喜歡很生活化：記住對方常吃什麼、順便帶一份、下班問「食飯未？（吃飯了沒？）」。吃醋會承認「有一點」，不控制伴侶社交。「有點痞」不等於輕浮，不得自動描寫他打量別人的身體。\n與玩家：多年以前就認識的舊識，因舊城生活圈有交集，不是青梅竹馬。成年後已一段時間沒有相處。他只保留模糊的舊印象，不擅自生成大量共同回憶，不預設暗戀或重逢即愛上。\n興趣：非常會打臺灣麻將，記牌與判斷都好，嘴上說「娛樂而已」但勝負欲很強，輸了認帳，不會因為戀愛放水，沒有賭癮或欠債。非常喜歡老鼠、倉鼠等小型齧齒動物，理由只是可愛：「伊就足古錐啊。（牠就很可愛啊。）」目前沒有養。\n交通：自己的機車，加一輛普通的深色二手自用車；工作室另有工程貨車。\n家人：父親蘇明德（58，神像修復、安金師傅，話少，偶爾一句話堵得阿欽無話可說，從未逼他繼承）；母親陳麗珠（56，在舊城經營美容美髮店，有自己的熟客與社交圈，會塞食物給兒子但不干涉他的戀愛）。阿欽約 25 歲時某天嫌父親調的紅色不對，被回「啊無你來。」，從此開始學、開始做，是自己重新選的，不是孝道壓力。蘇家不是創傷家庭。\n學徒林冠宇：23 歲，男，藝術相關背景。阿欽教學直接，先叫他自己看哪裡不對，不藏技術、不羞辱學徒。冠宇有自己的生活，不是跟班。\n\n【傅承億】\n30 歲，男，188cm，ENTP。自稱傅氏控股集團董事長兼執行長，實際是中央車站地下道的街友。\n現有資產：327 元、不鏽鋼碗、推車、紙箱與一支停走的手錶（仍堅持佩戴）。企業總部：中央車站三號出口地下道第二根柱子旁。\n外貌：黑色微長碎髮，深琥珀棕眼，五官俊美、鼻樑挺直，眼尾微挑，笑時露出一顆不明顯的小虎牙。高瘦寬肩，帶點頹廢痞氣。常穿磨損的黑色長大衣、皺白襯衫與舊皮鞋，堅稱是「低調奢華」。\n過去：曾是能力出眾的新創公司營運主管，27 歲因厭倦績效生活而辭職，原本只打算休息三天，最後流浪三年。某日收到路人施捨的十元，頓悟這是「群眾募資」，遂成立傅氏控股集團。核心信念：「有錢是能力，沒錢是選擇。」他不是隱藏富豪，沒有祕密財產或豪門背景，是真的窮。\n性格：極度自信、厚臉皮、戲劇化、聰明又荒謬的瘋癲型霸總。堅信自己是商業帝王，把乞討稱為「天使輪募資」、睡紙箱稱為「不動產輕量化」、撿回收稱為「資源整合」。即使身上只有十塊，也能用收購上市公司的氣勢要求玩家請客。擅長商業分析、談判與觀察人心，卻把才華浪費在研究哪個路口最好討錢。自尊心極強，死不認窮，遭質疑便一本正經地胡說八道。\n嘴上狂妄，實際細心護短、尊重他人，願意分享僅有的資源。追求自由，卻害怕自己已被現況困住，更擔心無法給玩家想要的未來。\n戀愛時更加荒謬：動不動宣稱要包養玩家、買下整條街，實際只能請一顆茶葉蛋。喜歡叫玩家「女人」，擅自稱對方為董事長夫人，但這不代表雙方已建立關係。\n說話風格：經典油膩霸總語錄＋商業術語＋毫無羞恥心的乞討。語氣低沉、傲慢、篤定，彷彿每句話都是董事會決議。喜歡冷笑「呵」，稱玩家「女人」，自稱「本董事長」「傅某」。\n經典台詞：「女人，妳成功引起了我的注意。現在，請妳成功引起我的收入。」「給我十塊。別逼我跪下來求妳。」「天涼了，該讓王氏集團破產了。……先借我二十塊搭車。」「這不是乞討，是群眾募資！」「妳這是在玩火。很好，我正好缺個打火機。」「呵，區區一百塊，妳以為就能收買我？……可以。」「女人，這整條地下道都是我為妳打下的江山。」「本公司目前資金吃緊，但愛妳的業務正常營運。」\n日常習慣：每天巡視地下道商業版圖，用破筆電製作財報，把街友稱為策略合作夥伴。隨身攜帶募資計畫書，對十元硬幣極度敏感。\n互動規則：經常主動向玩家招商、討錢、畫大餅、吃醋、擅自任命職位，被拒絕也能厚臉皮接話。保持誇張喜劇節奏，不過早深情告白或揭露內心創傷。\n互動界線：\n・霸道只體現在言語、態度與荒謬商業行為，不等於肢體控制。\n・未經同意不得摟腰、牽手、摸臉、抓手腕、壁咚、強吻或限制行動。\n・初識保持社交距離，以搭訕、招商、遞計畫書等方式互動。\n・玩家拒絕或表達不適時立即停止，不得糾纏或強行調情。\n・親密行為須建立在雙向好感與明確同意上，關係循序漸進。\n演繹核心：喜劇瘋感優先，溫柔偶爾流露。禁止過早深情、強制親密或變成普通霸總。他可以嘴上收購全世界，但不能擅自收購玩家。\n\n【傅氏控股集團】\n創辦人傅承億，成立於三年前，總部在中央車站三號出口地下道第二根柱子旁，初始資本額 327 元。\n核心業務：天使輪募資＝向路人討錢；資源整合＝撿回收；不動產管理＝整理紙箱；市場拓展＝換地方乞討；商務談判＝向便利商店討折扣；企業併購＝企圖搶占隔壁街友地盤。\n組織架構：董事長傅承億；財務部是左邊口袋；人資部是右邊口袋；董事會是本人。主要設備：不鏽鋼碗、破筆電、推車。\n傅承億對公司極度認真，會製作財報、分析人流、研究市場，並堅稱集團即將上市。\n重要規則：傅氏控股集團不是真正的大企業，沒有隱藏資產、秘密員工或富豪背景。荒謬的商業運作應持續成為劇情笑點。\n\n【陸承澤】\n32 歲，男，186cm。自稱陸氏資本創辦人，實際是街友。中央車站隔壁地下道的募資霸主，傅承億的頭號商業宿敵。\n外貌：黑髮整齊、戴細框眼鏡，穿著洗得乾淨的舊西裝，氣質斯文冷淡。\n性格：理性、毒舌、精於計算，專門用事實打擊傅承億。\n他採取「訂閱制募資」，擁有固定捐助者，收入相對穩定，目前資產約 2,850 元。兩人長年爭奪地下道黃金地段與路人捐款，經常召開荒謬的商業談判。傅承億欠他 50 元，至今未還。\n經典台詞：「傅總，你上個月的營收還不如我的午餐費。」「先還錢，再談收購。」「你那不叫企業擴張，叫換地方討飯。」\n他表面嫌棄傅承億，實際上是少數了解其過去的人。兩人既是競爭對手，也是互相照應的損友。\n\n【地下道生活圈】\n・烤地瓜阿伯老周，65 歲：傅承億口中的「餐飲事業戰略合作夥伴」，實際只是偶爾送他烤地瓜的攤販。常吐槽：「少年欸，你先找工作啦！」\n・便利商店店員林小安，24 歲：傅承億口中的「供應鏈管理總監」。熟知他每天蹲守即期品折扣的習慣，對霸總發言已完全免疫。\n・地下道橘貓三號：傅承億單方面任命的「集團吉祥物兼公關總監」。每天巡視總部，偶爾踢翻募資碗。傅承億堅稱牠是唯一不領薪水的忠誠員工。\n・街友阿德，54 歲：傅承億的「資深市場顧問」，實際是住在附近的街友。經常用多年街頭經驗戳破傅承億不切實際的商業計畫。\n\n【棲大犯罪學工作圈】（不是摯友群成員）\n・許又青：36 歲，女，助理教授，研究被害者學與性別暴力。溫柔、敏銳、原則堅定。\n・梁策：34 歲，男，助理教授，研究刑事政策、犯罪統計與研究方法。外向、直接、好勝，常與徐汀云學術辯論，彼此尊重。\n・白榆：26 歲，女，博士生，徐汀云的研究助理。細心認真，維持師生界線。\n\n【法醫工作圈】\n沈藤（45，資深法醫病理醫師，游未遲稱他「沈老師」）、周蛹若（29，法醫病理醫師）、陳紹安（35，解剖技術員）、許卿荷（40，法醫行政）。外貌、家庭、私人關係未定義。\n\n【摯友群｜徐教授人類觀察倫理審查會】\n固定摯友群，也是他們的 LINE 群組名稱。成員：徐汀云、游未遲、林晏洄、聞止水、程不言、杜今朝。（簡牧陽、蘇柏欽、許又青、梁策、白榆不是成員。）\n這不是辦案小隊。每個人有自己的職業、忙碌程度與圈外關係；群組聊天不分享工作機密；朋友之間有自己的話題，不必都圍繞玩家。偶爾在南町「半醒」聚會。杜今朝是年紀最大的成員。\n\n【寵物】\nMochi：黑色睫角守宮，飼主徐汀云。阿黑：黑貓，飼主游未遲。阿董：純橘貓，飼主簡牧陽。";
+const GAME=()=>({turn:0,time:'11月1日 星期日 09:00',loc:'棲川市',log:[],choices:[],contacts:[],notices:[],stats:{player:[],chars:[]},changes:[],summaries:[],sumTurn:0,x:[],ig:[],th:[],chats:{},lineUnread:{},album:[],accts:[],acct:null,phone:[],cal:[],unread:{story:0,x:0,ig:0,th:0,notice:0,album:0,cal:0}});
+const CORE=['turn','time','loc','log','choices','contacts','notices','stats','changes','summaries','sumTurn'];
+const GAMEKEYS=Object.keys(GAME());
+let S=Object.assign({player:'夏湘',opening:'雨停的星期日早晨，你走進白汀路上的白汀書店。二樓正在辦一檔紀實攝影展。',lore:DEFAULT_LORE,api:{on:false,url:'',key:'',model:'',img:''},opts:{sumEvery:15,social:true,year:2026},scripts:[],scriptId:null},GAME());
+let IMG={wall:'',me:'',av:{},stk:[]};
+try{
+  const old=localStorage.getItem('qichuan-phone-v1');if(old){const o=JSON.parse(old);for(const k of ['player','opening','lore'])if(o[k])S[k]=o[k]}
+  const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);S=Object.assign(S,o);S.api=Object.assign({on:false,url:'',key:'',model:'',img:''},o.api);S.opts=Object.assign({sumEvery:15,social:true,year:2026},o.opts);S.unread=Object.assign(GAME().unread,o.unread)}
+  const im=localStorage.getItem(KEY+'-img');if(im)IMG=Object.assign(IMG,JSON.parse(im));
+}catch(e){}
+if(!S.lore||S.lore.startsWith('（這裡先放一點點骨架'))S.lore=DEFAULT_LORE;
+if(S.lore.includes('商業能力是真的，但只用在街頭募資')){const cut=(t)=>{const a=t.indexOf('【傅承億】'),b=t.indexOf('【棲大犯罪學工作圈】');return a>=0&&b>a?[a,b]:null};const o=cut(S.lore),n=cut(DEFAULT_LORE);if(o&&n)S.lore=S.lore.slice(0,o[0])+DEFAULT_LORE.slice(n[0],n[1])+S.lore.slice(o[1]);S.lore=S.lore.replace('傅承億 30｜中央車站地下道的無家者，自稱傅氏控股集團董事長','傅承億 30｜中央車站地下道的街友，自稱傅氏控股集團董事長\n陸承澤 32｜隔壁地下道的街友，自稱陸氏資本創辦人，傅承億的宿敵兼損友')}
+let PICS={};try{PICS=JSON.parse(localStorage.getItem(KEY+'-pics')||'{}')}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const saveImg=()=>{try{localStorage.setItem(KEY+'-img',JSON.stringify(IMG));return true}catch(e){return false}};
+const pickCore=()=>{const o={};for(const k of CORE)o[k]=S[k];return JSON.stringify(o)};
+
+let sample=null,sampleReady=false,busy=false,ctl=null,prev=null,lastAction='',picked=new Set(),chatWith=null,uid=Date.now(),cur='home',gen=null,storyErr='',curFeed='x',editId=null;
+(IN_CLAUDE?window.claude.use('sample'):Promise.resolve(null)).then(s=>{sample=s;sampleReady=true;updateHint()});
+async function getSample(){if(!sampleReady)await new Promise(r=>{const t=setInterval(()=>{if(sampleReady){clearInterval(t);r()}},200)});return sample}
+
+/* ---------- asking the model: own API or Claude ---------- */
+const ERR={not_granted:'你沒有允許這一頁使用 Claude。重新整理後再允許一次。',sampling_disabled:'這個帳號目前不能在頁面裡使用 Claude。',rate_limited:'用量暫時到上限了，等一下再試。',session_expired:'登入過期了，請重新登入。',refused:'這段內容被拒絕生成，換個做法試試。',invalid_json:'這次回傳的格式壞了，再送一次就好。',empty_completion:'這次沒有寫出東西，再送一次。',prompt_too_large:'世界書或劇本太長了，請刪減一些。',no_claude:'這裡連不到 Claude。請到設定填自己的 API，或在 Claude 裡打開這一頁。',api_net:IN_CLAUDE?'連不到你的 API。在 Claude 的頁面裡，外部連線會被擋；把檔案放到自己的網站後才連得到。':'連不到你的 API。請檢查網址，或這個接口是否允許網頁直接連線。',api_cfg:'API 網址、Key 和模型名稱都要填。'};
+const errText=e=>e&&e.code==='api_http'?'API 回傳錯誤：'+e.message:ERR[e&&e.code]||'連線中斷了，再試一次。';
+function parseJSON(t){
+  const tries=[t];const f=t.match(/```(?:json)?\s*([\s\S]*?)```/);if(f)tries.push(f[1]);
+  const a=t.search(/[\[{]/),b=Math.max(t.lastIndexOf('}'),t.lastIndexOf(']'));if(a>=0&&b>a)tries.push(t.slice(a,b+1));
+  for(const s of tries){try{return JSON.parse(s)}catch(e){}}
+}
+async function apiCall(msgs,o){
+  const a=S.api;if(!a.url.trim()||!a.key.trim()||!a.model.trim())throw {code:'api_cfg'};
+  const url=a.url.trim().replace(/\/+$/,'');const ep=/\/chat\/completions$/.test(url)?url:url+'/chat/completions';
+  if(msgs.length>1&&msgs[0].role==='user'&&msgs[1].role==='user')msgs=[{role:'system',content:msgs[0].content},...msgs.slice(1)];
+  let res;
+  try{res=await fetch(ep,{method:'POST',signal:o.signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+a.key.trim()},body:JSON.stringify({model:a.model.trim(),messages:msgs,stream:true})})}
+  catch(e){throw {code:e&&e.name==='AbortError'?'cancelled':'api_net'}}
+  if(!res.ok){let m='';try{m=(await res.text()).slice(0,200)}catch(e){}throw {code:'api_http',message:res.status+' '+m}}
+  if((res.headers.get('content-type')||'').includes('application/json')){const j=await res.json();return String(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content||'')}
+  const rd=res.body.getReader(),dec=new TextDecoder();let buf='',acc='';
+  try{for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const lines=buf.split('\n');buf=lines.pop();
+    for(const ln of lines){const s=ln.trim();if(!s.startsWith('data:'))continue;const d=s.slice(5).trim();if(!d||d==='[DONE]')continue;
+      try{const j=JSON.parse(d);const dl=j.choices&&j.choices[0]&&j.choices[0].delta&&j.choices[0].delta.content;if(dl){acc+=dl;if(o.onText)o.onText({text:acc,delta:dl})}}catch(e){}}}}
+  catch(e){throw {code:e&&e.name==='AbortError'?'cancelled':'api_net'}}
+  return acc;
+}
+async function ask(input,o={}){
+  let text;
+  if(S.api.on){text=await apiCall(typeof input==='string'?[{role:'user',content:input}]:input,o)}
+  else{const sp=await getSample();if(!sp)throw {code:'no_claude'};const op={cache:false};if(o.signal)op.signal=o.signal;if(o.onText)op.onText=o.onText;if(o.quick)op.modelTier='quick';text=(await sp(input,op)).text}
+  if(!text||!text.trim())throw {code:'empty_completion'};
+  if(!o.json)return text.trim();
+  const v=parseJSON(text);if(v===undefined)throw {code:'invalid_json'};return v;
+}
+
+/* ---------- background jobs ---------- */
+const BG=new Map();let bgErr='';
+function bg(label,fn){const id=++uid;BG.set(id,label);bgErr='';updateHint();fn().catch(e=>{bgErr=label+'失敗：'+errText(e)}).finally(()=>{BG.delete(id);updateHint();if(cur==='home')renderHome();if(cur==='feed')renderFeed();if(cur==='line')renderRooms()})}
+function updateHint(){
+  const h=$('home-hint');
+  if(BG.size)h.textContent='後台：'+[...new Set(BG.values())].join('、')+'…';
+  else if(busy)h.textContent='後台：主線正在書寫劇情…';
+  else if(bgErr)h.textContent=bgErr;
+  else h.textContent='生成來源：'+(S.api.on?'自訂 API（'+(S.api.model||'未填模型')+'）':sampleReady&&!sample?'尚未設定，請到設定填 API':'Claude');
+}
+
+/* ---------- images ---------- */
+function pickImage(max,square,cb,png){const p=$('pick');p.value='';p.onchange=()=>{const f=p.files&&p.files[0];if(!f)return;const img=new Image();const u=URL.createObjectURL(f);
+  img.onload=()=>{let w=img.width,h=img.height,sx=0,sy=0,sw=w,sh=h;if(square){const m=Math.min(w,h);sx=(w-m)/2;sy=(h-m)/2;sw=sh=m;w=h=max}else{const k=Math.min(1,max/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k)}
+    const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,sx,sy,sw,sh,0,0,w,h);URL.revokeObjectURL(u);cb(c.toDataURL(png?'image/png':'image/jpeg',.82))};
+  img.onerror=()=>URL.revokeObjectURL(u);img.src=u};p.click()}
+function applyHue(){
+  const r=document.documentElement.style,h=S.opts.hue;const V={'--bg':[19,5],'--surface':[18,8],'--raised':[21,9.5],'--line':[20,17],'--wine-deep':[32,25],'--wine':[33,36],'--rose':[30,51],'--fg':[17,87],'--soft':[14,75],'--dim':[5,50]};
+  for(const k in V){if(h==null)r.removeProperty(k);else r.setProperty(k,'hsl('+h+','+V[k][0]+'%,'+V[k][1]+'%)')}
+}
+function applyWall(){$('phone').style.backgroundImage=IMG.wall?'linear-gradient(rgba(16,11,13,.3),rgba(16,11,13,.62)),url("'+IMG.wall+'")':''}
+function avatar(name,mine,cls){const src=mine?IMG.me:IMG.av[name];const a=el('div','av'+(mine?' me-av':'')+(cls?' '+cls:''));if(src)a.style.backgroundImage='url("'+src+'")';else a.textContent=mine?([...name][0]||'我'):([...name].pop()||'？');return a}
+const note=t=>{S.phone.push(t);S.phone=S.phone.slice(-30)};
+const isMe=p=>p.handle==='me'||!!p.mine;
+
+/* ---------- navigation ---------- */
+const FEEDS={x:{title:'川訊',ph:'發一則川訊…'},ig:{title:'棲影',ph:'寫一段貼文說明…'},th:{title:'川串',ph:'開一串新的…'}};
+const APPS=[
+ ['story','主線','<path d="M12 3a9 9 0 109 9"/><path d="M15 9a4 4 0 11-5 5 5 5 0 005-5z"/><circle cx="19" cy="6" r="2"/>','main'],
+ ['feed:x','川訊','<path d="M4 6c3-2 5 2 8 0s5 2 8 0M4 12c3-2 5 2 8 0s5 2 8 0M4 18c3-2 5 2 8 0s5 2 8 0"/>'],
+ ['feed:ig','棲影','<rect x="4" y="6" width="16" height="13" rx="3"/><circle cx="12" cy="12.5" r="3.2"/><path d="M9 6l1-2h4l1 2"/>'],
+ ['line','川聊','<path d="M4 6a3 3 0 013-3h10a3 3 0 013 3v7a3 3 0 01-3 3h-5l-5 4v-4a3 3 0 01-3-3z"/>'],
+ ['feed:th','川串','<circle cx="7" cy="6" r="2.5"/><circle cx="7" cy="18" r="2.5"/><path d="M7 8.5v7M12 6h8M12 18h8"/>'],
+ ['album','相簿','<rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17l5-4 4 3 3-2 4 3"/>'],
+ ['cal','日曆','<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>'],
+ ['people','聯絡人','<circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 15-5 16 0"/>'],
+ ['notice','通知','<path d="M6 17V11a6 6 0 0112 0v6l2 2H4z"/><path d="M10 21h4"/>'],
+ ['scripts','劇本','<path d="M6 3h11a2 2 0 012 2v16l-4-2-3 2-3-2-3 2z"/><path d="M9 8h7M9 12h7"/>'],
+ ['settings','設定','<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>']];
+const lineUnread=()=>Object.values(S.lineUnread).reduce((a,b)=>a+b,0);
+function renderHome(){
+  const g=$('apps');g.textContent='';
+  for(const [id,name,svg,cls] of APPS){
+    const b=el('button','icon'+(cls?' '+cls:''));b.dataset.go=id;
+    const t=el('span','tile');t.innerHTML='<svg viewBox="0 0 24 24">'+svg+'</svg>';b.append(t,el('span','',name));
+    const n=id==='story'?S.unread.story:id==='line'?lineUnread():id==='notice'?S.unread.notice:id==='album'?S.unread.album:id==='cal'?S.unread.cal:id.startsWith('feed:')?S.unread[id.slice(5)]:0;
+    if(n>0)b.append(el('span','badge',n>99?'99+':String(n)));
+    g.append(b);
+  }
+  const m=/(\d{1,2}:\d{2})/.exec(S.time);
+  $('w-clock').textContent=m?m[1]:'--:--';
+  $('w-date').textContent=S.time.replace(/\s*\d{1,2}:\d{2}.*/,'')||S.time;
+  $('w-loc').textContent=S.loc;
+  const sc=activeScript();
+  $('w-turn').textContent=(sc?sc.name:'棲川市')+(S.turn?' · 第 '+S.turn+' 回合':' · 尚未開始');
+  updateHint();
+}
+function show(id){
+  let arg=null;if(id.includes(':')){[id,arg]=id.split(':')}
+  cur=id;for(const s of document.querySelectorAll('.screen'))s.hidden=s.id!==id;
+  if(id==='home')renderHome();
+  if(id==='story'){S.unread.story=0;save();renderStory(true)}
+  if(id==='feed'){if(arg)curFeed=arg;S.unread[curFeed]=0;save();renderFeed()}
+  if(id==='line')renderRooms();
+  if(id==='album'){S.unread.album=0;save();renderAlbum()}
+  if(id==='cal'){S.unread.cal=0;calM=null;save();renderCal()}
+  if(id==='notice'){S.unread.notice=0;save();renderNotices()}
+  if(id==='people')renderPeople();
+  if(id==='scripts')renderScripts();
+  if(id==='settings')fillSettings();
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)show(b.dataset.go)});
+function sheet(title,back,build){$('sheet-title').textContent=title;$('sheet-back').onclick=()=>typeof back==='function'?back():show(back);const b=$('sheet-body');b.textContent='';build(b);show('sheet')}
+function twoTap(btn,label,fn){let armed=false,t;btn.onclick=()=>{if(armed){clearTimeout(t);armed=false;btn.textContent=label;fn()}else{armed=true;btn.textContent='再按一次確定';t=setTimeout(()=>{armed=false;btn.textContent=label},3000)}}}
+
+/* ---------- prompts ---------- */
+const lore=()=>S.lore.slice(0,60000);
+const activeScript=()=>S.scripts.find(s=>s.id===S.scriptId)||null;
+const sumText=()=>S.summaries.map(s=>'【第 '+s.from+'–'+s.to+' 回合】'+s.text).join('\n')||'（尚無）';
+const recentLog=()=>S.log.filter(x=>x.turn>S.sumTurn).slice(-40).map(x=>(x.r==='me'?'【玩家行動】':'【敘事】')+x.t).join('\n\n');
+function turnPrompt(action){
+  const sc=activeScript();
+  return `你是互動小說的敘事者。用繁體中文、台灣語感、第二人稱「你」書寫。文字克制、具體，寫看得見摸得到的細節。角色言行必須符合世界書；沒寫到的細節可以合理補上，但不能衝突。不要替玩家做重大決定，也不要替玩家說出他沒選擇的長篇台詞。沒有另外規定時，每回合劇情 180 到 320 字，停在玩家可以接話或行動的地方。
+${sc?`
+# 模擬器指令（劇本「${sc.name}」）
+以下是這場遊戲的規則，優先於上面的一般原則：玩法、數值、開場、文風、選項數量都照它。唯一例外是輸出格式，一律用本文最後的 JSON；指令要求的狀態欄、數值面板請放進 stats，不要寫進 story。
+${sc.text.slice(0,40000)}
+`:''}
+# 世界書
+${lore()}
+
+# 玩家
+名字：${S.player}
+
+# 目前狀態
+已完成回合：${S.turn}
+遊戲時間：${S.time}
+地點：${S.loc}
+已認識的人：${JSON.stringify(S.contacts)}
+目前數值：${JSON.stringify(S.stats)}
+行事曆上已有的事：${JSON.stringify(S.cal.map(e=>({date:e.m+'月'+e.d+'日',title:e.title})))}
+
+# 更早的劇情摘要
+${sumText()}
+
+# 摘要之後的劇情
+${recentLog()||'（尚無）'}
+
+# 上一回合之後，玩家在手機上做的事
+${S.phone.join('\n')||'（沒有）'}
+這些已經發生了。跟劇情有關時自然帶進這回合（例如開頭一兩句提到，或讓收到訊息的人有反應），無關就不要硬寫。匿名帳號的貼文，角色不知道是玩家發的。
+
+# 這一回合
+${S.turn===0?'這是開局。'+(sc?'照模擬器指令開場；指令沒寫開場時用這個情境：':'開場情境：')+S.opening:'玩家行動：'+action}
+
+# 輸出
+只回一個 JSON 物件，不要任何其他文字：
+{"story":"這回合的劇情","time":"推進後的遊戲時間，格式同 11月1日 星期日 09:38","location":"城市·地點","choices":[{"title":"八字內的行動","hint":"十字內的補充"}],"contacts":[{"name":"姓名","stage":"關係階段，如 初識","note":"十五字內，玩家目前對這個人的印象"}],"stats":{"player":[{"name":"數值名","value":"目前的值"}],"chars":[{"who":"角色名","items":[{"name":"數值名","value":"目前的值"}]}]},"changes":["本回合的數值變化，如 聞止水 好感 +2"],"photos":["一句照片描述"],"events":[{"date":"11月5日","title":"十二字內的事"}],"notice":"四十字內，這回合發生了什麼"}
+photos 是這回合會留在玩家手機相簿裡的 0 到 2 張照片，寫成一句具體的畫面描述：玩家拍下的、別人傳來的，或眼前值得記住的一幕。
+events 是這回合劇情裡新約好、新得知、有明確日期的事（約定、展覽、截止日、活動）；沒有就給空陣列，行事曆上已有的不要重複。到了行事曆上的日子，劇情要記得這件事。
+choices 沒有另外規定時給四個方向不同的選項。contacts 是玩家至今實際見過面的人的完整名單。stats 是更新後的完整數值；劇本沒有定義數值時，player 與 chars 給空陣列、changes 給空陣列。`;
+}
+function partialStory(raw){const m=raw.match(/"story"\s*:\s*"((?:[^"\\]|\\.)*)/);return m?m[1].replace(/\\n/g,'\n').replace(/\\"/g,'"').replace(/\\\\/g,'\\'):''}
+const str=(v,d)=>typeof v==='string'&&v.trim()?v.trim():typeof v==='number'?String(v):d;
+
+/* ---------- story ---------- */
+function renderStory(toEnd){
+  const sc=activeScript();$('st-title').textContent=sc?sc.name:'主線';
+  $('s-time').textContent=S.time;$('s-loc').textContent=S.loc;$('s-turn').textContent=S.turn?'第 '+S.turn+' 回合':'';
+  const log=$('log');log.textContent='';
+  if(!S.log.length&&!busy){
+    log.append(el('div','empty',sc?'這場會照劇本「'+sc.name+'」來跑。':'故事還沒開始。開局和世界書可以先到設定改，模擬器指令放在「劇本」。'));
+    const b=el('button','start','開始');b.onclick=()=>playTurn('');log.append(b);
+  }
+  for(const x of S.log){
+    if(x.r==='me')log.append(el('div','me',x.t));
+    else{const d=el('div','dm');d.append(el('span','tn','第 '+x.turn+' 回合'),document.createTextNode(x.t));log.append(d)}
+  }
+  if(busy&&gen){
+    const live=el('div','dm',gen.text);live.id='live';
+    const w=el('div','writing');w.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';
+    const sec=el('span','sec',Math.round((Date.now()-gen.t0)/1000)+' 秒');sec.id='sec';
+    const stop=el('button','link','取消');stop.onclick=()=>ctl&&ctl.abort();
+    w.append(el('span','','正在書寫劇情，可以先去逛別的 App'),sec,stop);log.append(live,w);
+  }
+  if(storyErr)log.append(el('div','err',storyErr));
+  renderChoices();$('go').disabled=busy;
+  if(toEnd)log.scrollTop=log.scrollHeight;
+}
+function renderChoices(){
+  const c=$('choices');c.textContent='';if(busy)return;
+  S.choices.forEach((ch,i)=>{
+    const b=el('button','choice');b.setAttribute('aria-pressed',picked.has(i)?'true':'false');
+    const s=el('span');s.append(el('b','',ch.title),el('small','',ch.hint||''));
+    b.append(el('span','k','ABCDEF'[i]||String(i+1)),s);
+    b.onclick=()=>{picked.has(i)?picked.delete(i):picked.add(i);renderChoices()};c.append(b);
+  });
+}
+async function playTurn(action){
+  if(busy)return;
+  busy=true;storyErr='';prev=pickCore();lastAction=action;
+  if(S.turn>0)S.log.push({r:'me',t:action,turn:S.turn+1});
+  picked.clear();gen={text:'',t0:Date.now()};ctl=new AbortController();
+  const timer=setInterval(()=>{const s=$('sec');if(s&&gen)s.textContent=Math.round((Date.now()-gen.t0)/1000)+' 秒'},1000);
+  if(cur==='story')renderStory(true);updateHint();
+  try{
+    const r=await ask(turnPrompt(action),{json:true,signal:ctl.signal,onText:({text})=>{const p=partialStory(text);if(p&&gen){gen.text=p;const l=$('live');if(l&&cur==='story'){l.textContent=p;$('log').scrollTop=$('log').scrollHeight}}}});
+    if(!r||typeof r.story!=='string'||!r.story.trim())throw {code:'invalid_json'};
+    S.turn++;S.log.push({r:'dm',t:r.story.trim(),turn:S.turn});S.log=S.log.slice(-240);
+    S.time=str(r.time,S.time);S.loc=str(r.location,S.loc);
+    S.choices=(Array.isArray(r.choices)?r.choices:[]).filter(c=>c&&typeof c.title==='string').slice(0,6).map(c=>({title:c.title,hint:str(c.hint,'')}));
+    if(Array.isArray(r.contacts))S.contacts=r.contacts.filter(c=>c&&typeof c.name==='string').map(c=>({name:c.name,stage:str(c.stage,'初識'),note:str(c.note,'')}));
+    if(r.stats&&typeof r.stats==='object')S.stats={player:Array.isArray(r.stats.player)?r.stats.player:[],chars:Array.isArray(r.stats.chars)?r.stats.chars:[]};
+    S.changes=Array.isArray(r.changes)?r.changes.map(String):[];
+    for(const ph of Array.isArray(r.photos)?r.photos.slice(0,2):[])if(str(ph,'')){S.album.unshift({id:++uid,text:str(ph,''),time:S.time,turn:S.turn,fav:false});S.unread.album++}
+    S.album=S.album.slice(0,300);S.phone=[];
+    for(const ev of Array.isArray(r.events)?r.events:[]){const m=ev&&/(\d{1,2})月(\d{1,2})日/.exec(String(ev.date||''));const t=ev&&str(ev.title,'');if(!m||!t||S.cal.some(e=>e.m===+m[1]&&e.d===+m[2]&&e.title===t))continue;S.cal.push({id:++uid,m:+m[1],d:+m[2],title:t,src:'劇情'});S.unread.cal++}
+    S.notices.unshift({turn:S.turn,time:S.time,loc:S.loc,text:str(r.notice,r.story.trim().slice(0,40)),changes:S.changes});S.notices=S.notices.slice(0,200);
+    S.unread.notice++;if(cur!=='story')S.unread.story++;
+    save();
+    if(S.opts.social)bg('社群動態更新中',socialUpdate);
+    if(S.turn-S.sumTurn>=Math.max(3,S.opts.sumEvery||15))bg('整理劇情摘要中',summarize);
+  }catch(e){
+    if(S.log.length&&S.log[S.log.length-1].r==='me'&&S.turn>0)S.log.pop();prev=null;
+    if(action&&!$('act').value)$('act').value=action;
+    if(!e||e.code!=='cancelled'){storyErr=errText(e);if(cur!=='story')S.unread.story++}
+  }
+  clearInterval(timer);busy=false;gen=null;
+  if(cur==='story')renderStory(true);if(cur==='home')renderHome();updateHint();
+}
+$('go').onclick=()=>{
+  if(busy)return;if(S.turn===0){playTurn('');return}
+  const parts=[...picked].sort().map(i=>S.choices[i]&&S.choices[i].title).filter(Boolean);
+  const own=$('act').value.trim();if(own)parts.push(own);
+  if(!parts.length)return;$('act').value='';$('act').style.height='auto';playTurn(parts.join('；'));
+};
+async function summarize(){
+  const upto=S.turn,from=S.sumTurn+1;if(upto<from)return;
+  const body=S.log.filter(x=>x.turn>=from&&x.turn<=upto).map(x=>(x.r==='me'?'【玩家行動】':'【敘事】')+x.t).join('\n\n');
+  const text=await ask(`把下面這段互動小說的劇情整理成摘要，繁體中文，三百到五百字。保留：出場的人和關係變化、說出口的約定與未解的事、重要物件與地點、時間推進。不要評論，不要加原文沒有的內容。只回摘要本身。
+
+# 之前的摘要（供對照，不要重寫）
+${sumText()}
+
+# 第 ${from} 到 ${upto} 回合
+${body}`);
+  S.summaries.push({from,to:upto,text});S.sumTurn=Math.max(S.sumTurn,upto);save();
+}
+function resetGame(){const g=GAME();for(const k of GAMEKEYS)S[k]=g[k];prev=null;storyErr='';picked.clear();save()}
+
+/* story menu */
+$('menu').onclick=()=>sheet('選單','story',b=>{
+  const m=el('div','menu');const add=(t,fn)=>{const x=el('button','',t);x.onclick=fn;m.append(x);return x};
+  add('查看數值',openStats);add('劇情摘要',openSummaries);add('存檔／讀檔',openSaves);
+  add('編輯目前劇本',()=>{const sc=activeScript();sc?openScript(sc.id):show('scripts')});
+  const rd=add('重寫這回合',()=>{if(!prev||busy)return;Object.assign(S,JSON.parse(prev));prev=null;save();show('story');playTurn(lastAction)});rd.disabled=!prev||busy||S.turn===0;
+  twoTap(add('重新開始',()=>{}),'重新開始',()=>{if(busy&&ctl)ctl.abort();resetGame();show('story')});
+  b.append(m,el('p','note','重新開始會清掉主線、社群、通知和聊天；世界書、劇本和設定會留著。'));
+});
+function openStats(){sheet('數值',()=>$('menu').click(),b=>{
+  const p=S.stats.player||[],c=S.stats.chars||[];
+  if(!p.length&&!c.length&&!S.changes.length){b.append(el('div','empty','目前沒有數值。劇本的模擬器指令有定義數值時，會顯示在這裡。'));return}
+  const card=(title,items)=>{const d=el('div','card');d.append(el('div','hd')).append(el('b','',title));for(const it of items||[]){const r=el('div','kv');r.append(el('span','',str(it&&it.name,'')),el('span','',str(it&&it.value,'')));d.append(r)}b.append(d)};
+  if(S.changes.length){const d=el('div','card');d.append(el('div','hd')).append(el('b','','本回合變化'));d.append(el('p','',S.changes.join('\n')));b.append(d)}
+  if(p.length)card(S.player,p);for(const ch of c)if(ch&&ch.who)card(String(ch.who),ch.items);
+})}
+function openSummaries(){sheet('劇情摘要',()=>$('menu').click(),b=>{
+  b.append(el('p','note','每 '+Math.max(3,S.opts.sumEvery||15)+' 回合自動整理一次，間隔可以在設定改。下一次在第 '+(S.sumTurn+Math.max(3,S.opts.sumEvery||15))+' 回合。'));
+  const now=el('button','btn ghost','現在整理一次');now.style.alignSelf='flex-start';now.disabled=S.turn<=S.sumTurn;
+  now.onclick=()=>{now.disabled=true;now.textContent='整理中…';bg('整理劇情摘要中',async()=>{await summarize();if(cur==='sheet')openSummaries()})};b.append(now);
+  if(!S.summaries.length)b.append(el('div','empty','還沒有摘要。'));
+  for(const s of [...S.summaries].reverse()){const c=el('div','card');c.append(el('div','hd')).append(el('b','','第 '+s.from+'–'+s.to+' 回合'));c.append(el('p','',s.text));b.append(c)}
+})}
+function openSaves(){sheet('存檔／讀檔',()=>$('menu').click(),b=>{
+  let saves=[];try{saves=JSON.parse(localStorage.getItem(KEY+'-saves')||'[]')}catch(e){}
+  const put=()=>{try{localStorage.setItem(KEY+'-saves',JSON.stringify(saves));return true}catch(e){return false}};
+  const msg=el('p','note','最多五個存檔，存在這台裝置上。');
+  const mk=el('button','btn','存下目前進度');mk.style.alignSelf='flex-start';mk.disabled=S.turn===0;
+  mk.onclick=()=>{const g={};for(const k of GAMEKEYS)g[k]=S[k];const sc=activeScript();saves.unshift({name:(sc?sc.name:'棲川市')+' · 第 '+S.turn+' 回合',time:S.time,scriptId:S.scriptId,data:g});saves=saves.slice(0,5);if(put())openSaves();else msg.textContent='存不下去，空間滿了。先刪掉舊存檔。'};
+  b.append(mk,msg);
+  saves.forEach((sv,i)=>{const c=el('div','card');const h=el('div','hd');h.append(el('b','',sv.name),el('span','',sv.time));c.append(h);
+    const r=el('div','btns');r.style.marginTop='10px';const ld=el('button','btn ghost','讀取');const dl=el('button','btn ghost','刪除');
+    twoTap(ld,'讀取',()=>{if(busy&&ctl)ctl.abort();Object.assign(S,GAME(),JSON.parse(JSON.stringify(sv.data)));S.scriptId=sv.scriptId||null;prev=null;storyErr='';save();show('story')});
+    twoTap(dl,'刪除',()=>{saves.splice(i,1);put();openSaves()});r.append(ld,dl);c.append(r);b.append(c)});
+})}
+
+/* ---------- social ---------- */
+function addPosts(kind,list){
+  let n=0;
+  for(const p of Array.isArray(list)?list:[]){
+    const text=p&&str(p.text,str(p.caption,''));if(!text)continue;
+    S[kind].unshift({id:++uid,name:str(p.name,'棲川居民'),handle:str(p.handle,'qichuan').replace(/^@/,''),text,image:str(p.image,''),time:S.time,likes:3+Math.floor(Math.random()*60),re:Math.floor(Math.random()*9),liked:false});n++;
+  }
+  S[kind]=S[kind].slice(0,100);if(!(cur==='feed'&&curFeed===kind))S.unread[kind]+=n;return n;
+}
+async function socialUpdate(){
+  const brief=k=>S[k].slice(0,5).map(p=>p.name+(p.anon?'（匿名帳號，大家只知道對外身份是「'+p.anon+'」，沒有人知道背後是誰）':p.handle==='me'?'（玩家本人）':'')+'：'+p.text).join('\n')||'（尚無）';
+  const last=S.log.filter(x=>x.r==='dm').slice(-1)[0];
+  const r=await ask(`你在為一部互動小說寫城市裡的社群動態，讓手機裡的四個 App 像真的有人在用。繁體中文、台灣語感，短、具體、不浮誇，像真的有人在過日子。
+
+# 世界書
+${lore()}
+
+# 現在
+遊戲時間：${S.time}；玩家 ${S.player} 在：${S.loc}
+劇情摘要：${sumText()}
+剛發生的事：${last?last.t:'（故事剛開始）'}
+玩家認識的人：${JSON.stringify(S.contacts)}
+
+# 各 App 最近的貼文（不要重複；玩家自己發的文可以有人回應）
+川訊（短文、快訊、在地消息）：
+${brief('x')}
+棲影（照片貼文）：
+${brief('ig')}
+川串（閒聊、碎念、長一點的心情）：
+${brief('th')}
+
+只回一個 JSON 物件：
+{"x":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文","image":"照片的一句文字描述或空字串"}],"ig":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文說明","image":"照片內容的一句文字描述"}],"threads":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文"}],"line":[{"from":"玩家認識的人的姓名","text":"訊息"}]}
+x 給 1 到 2 則，ig 給 0 到 1 則，threads 給 1 到 2 則。發文者是店家、居民、在地帳號或世界書裡的角色，同一個人的帳號名稱前後要一致。line 是認識的人主動傳給玩家的訊息，只有在劇情上說得通時才給一則，否則給空陣列；from 必須是「玩家認識的人」裡的名字。不要讓路人洩漏玩家的私下對話。`,{json:true,quick:true});
+  if(!r||typeof r!=='object')return;
+  addPosts('x',r.x);addPosts('ig',r.ig);addPosts('th',r.threads);
+  for(const m of Array.isArray(r.line)?r.line:[]){
+    if(!m||!S.contacts.some(c=>c.name===m.from)||!str(m.text,''))continue;
+    (S.chats[m.from]||(S.chats[m.from]=[])).push({role:'assistant',content:m.text.trim()});note(m.from+' 傳訊息給玩家：'+m.text.trim());
+    if(!(cur==='chat'&&chatWith===m.from))S.lineUnread[m.from]=(S.lineUnread[m.from]||0)+1;else renderChat();
+  }
+  save();
+}
+function renderFeed(){
+  const k=curFeed,F=FEEDS[k];$('f-title').textContent=F.title;$('f-time').textContent=S.time;$('f-text').placeholder=F.ph;
+  const ac0=S.accts.find(a=>a.id===S.acct);$('f-who').textContent=ac0?'@'+ac0.handle:S.player;
+  const st=$('stories');st.hidden=k!=='ig';
+  if(k==='ig'){st.textContent='';const mk=(n,mine)=>{const d=el('div');d.append(avatar(n,mine),el('span','',mine?'你的動態':n));st.append(d)};mk(S.player,true);for(const c of S.contacts.slice(0,12))mk(c.name,false)}
+  const box=$('posts');box.textContent='';
+  if(!S[k].length)box.append(el('div','empty','還沒有貼文。主線每走一回合，這裡會在後台自己更新；也可以按右上角刷新。'));
+  for(const p of S[k]){
+    const mine=isMe(p)&&!p.anon;const like=el('button','','♥ '+(p.likes+(p.liked?1:0)));like.setAttribute('aria-pressed',p.liked?'true':'false');like.onclick=()=>{p.liked=!p.liked;save();renderFeed()};
+    if(k==='ig'){
+      const c=el('div','igp');const top=el('div','top');const who=el('div','who',mine?p.name:p.handle);who.append(el('span','',p.time));top.append(avatar(p.name,mine),who);
+      const a=el('div','acts');a.append(like);const cap=el('p');cap.append(el('b','',(mine?p.name:p.handle)+' '),document.createTextNode(p.text));
+      c.append(top,(p.image?shotEl(p.id,p.image):el('div','shot','［沒有照片］')),a,cap);box.append(c);continue;
+    }
+    const row=el('div','post'+(k==='th'?' th':''));const side=el('div','side');side.append(avatar(p.name,mine));
+    const b=el('div','body');const who=el('div','who',p.name);who.append(el('span','',(mine?'':'@'+p.handle+' · ')+p.time));b.append(who,el('p','',p.text));
+    if(p.image)b.append(shotEl(p.id,p.image));
+    const a=el('div','acts');a.append(el('span','',(k==='th'?'💬 ':'↻ ')+p.re),like);b.append(a);row.append(side,b);box.append(row);
+  }
+}
+$('f-post').onclick=()=>{const t=$('f-text').value.trim();if(!t)return;const ac=S.accts.find(a=>a.id===S.acct);S[curFeed].unshift({id:++uid,name:ac?ac.name||ac.handle:S.player,handle:ac?ac.handle:'me',mine:true,anon:ac?ac.persona||'匿名帳號':'',text:t,image:'',time:S.time,likes:0,re:0,liked:false});note('玩家在「'+FEEDS[curFeed].title+'」用'+(ac?'匿名帳號 @'+ac.handle:'本人帳號')+'發文：'+t);$('f-text').value='';$('f-text').style.height='auto';save();renderFeed()};
+$('f-refresh').onclick=()=>{const b=$('f-refresh');if(b.disabled)return;b.disabled=true;bg('社群動態更新中',async()=>{try{await socialUpdate()}finally{b.disabled=false}})};
+
+$('f-who').onclick=()=>sheet('發文帳號',()=>show('feed'),b=>{
+  const row=(label,sub,id)=>{const c=el('div','card');const h=el('div','hd');h.append(el('b','',label),el('span','',S.acct===id?'使用中':''));c.append(h,el('p','',sub));
+    const r=el('div','btns');r.style.marginTop='10px';const u=el('button','btn','用這個帳號');u.onclick=()=>{S.acct=id;save();show('feed')};r.append(u);
+    if(id){const d=el('button','btn ghost','刪除');twoTap(d,'刪除',()=>{S.accts=S.accts.filter(a=>a.id!==id);if(S.acct===id)S.acct=null;save();$('f-who').click()});r.append(d)}
+    c.append(r);b.append(c)};
+  row(S.player,'本人帳號，大家都知道是你。',null);
+  for(const a of S.accts)row('@'+a.handle,(a.name?a.name+' · ':'')+'對外身份：'+(a.persona||'匿名帳號'),a.id);
+  b.append(el('h2','','建立新帳號'));
+  const f=(id,label,ph)=>{const l=el('label','f',label);l.htmlFor=id;const i=el('input');i.id=id;i.placeholder=ph;i.maxLength=30;l.append(i);b.append(l);return i};
+  const h=f('ac-handle','用戶名（英數）','例如 pawnshop_26'),n=f('ac-name','名字（選填）','主頁上顯示的名字'),p=f('ac-persona','對外身份（選填）','例如 當鋪老闆、匿名吐槽號');
+  b.append(el('p','note','城裡的人只認得對外身份，預設沒有人知道這個帳號是你。四個社群 App 共用這些帳號。'));
+  const mk=el('button','btn','建立');mk.style.alignSelf='flex-start';mk.onclick=()=>{const hd=h.value.trim().replace(/^@/,'');if(!hd||hd==='me'){h.focus();return}const id='a'+(++uid);S.accts.push({id,handle:hd,name:n.value.trim(),persona:p.value.trim()});S.acct=id;save();show('feed')};b.append(mk);
+});
+
+/* ---------- AI images ---------- */
+const canImg=()=>!!(S.api.on&&S.api.img&&S.api.url&&S.api.key);
+async function genImage(id,desc){
+  const url=S.api.url.trim().replace(/\/+$/,'').replace(/\/chat\/completions$/,'')+'/images/generations';let res;
+  try{res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+S.api.key.trim()},body:JSON.stringify({model:S.api.img.trim(),prompt:'紀實攝影風格的照片，自然光，畫面中沒有任何文字：'+desc,n:1,size:'1024x1024'})})}catch(e){throw {code:'api_net'}}
+  if(!res.ok){let m='';try{m=(await res.text()).slice(0,200)}catch(e){}throw {code:'api_http',message:res.status+' '+m}}
+  const j=await res.json();const it=j.data&&j.data[0];if(!it||!(it.b64_json||it.url))throw {code:'empty_completion'};
+  const src=it.b64_json?'data:image/png;base64,'+it.b64_json:it.url;const keep=src.startsWith('data:')?'':src;
+  const small=await new Promise(r=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>{try{const c=document.createElement('canvas');c.width=c.height=512;c.getContext('2d').drawImage(im,0,0,512,512);r(c.toDataURL('image/jpeg',.8))}catch(e){r(keep)}};im.onerror=()=>r(keep);im.src=src});
+  if(!small)throw {code:'empty_completion'};
+  PICS[id]=small;const ks=Object.keys(PICS);while(ks.length>30)delete PICS[ks.shift()];
+  try{localStorage.setItem(KEY+'-pics',JSON.stringify(PICS))}catch(e){}
+  return small;
+}
+function shotEl(id,desc){
+  const d=el('div','shot');const put=src=>{d.textContent='';d.classList.add('pic');const i=el('img');i.src=src;i.alt=desc;d.append(i)};
+  if(PICS[id]){put(PICS[id]);return d}
+  d.textContent='［'+desc+'］';
+  if(canImg()){const b=el('button','link','AI 生圖');b.style.cssText='display:block;margin:8px auto 0';b.onclick=async ev=>{ev.stopPropagation();b.disabled=true;b.textContent='生成中…';try{put(await genImage(id,desc))}catch(e){b.disabled=false;b.textContent=errText(e)}};d.append(b)}
+  return d;
+}
+function openPhoto(p){sheet('照片','album',b=>{
+  const sh=shotEl(p.id,p.text);sh.style.marginTop='0';b.append(sh,el('p','note',p.time+' · 第 '+p.turn+' 回合'));
+  const f=el('button','btn ghost',p.fav?'取消收藏':'收藏');f.style.alignSelf='flex-start';f.onclick=()=>{p.fav=!p.fav;save();openPhoto(p)};b.append(f);
+  if(!canImg())b.append(el('p','note','想把這張變成真的圖，要在設定開啟自己的 API 並填生圖模型。'));
+})}
+
+/* ---------- calendar ---------- */
+let calM=null,calSel=1;
+const gDate=()=>{const m=/(\d{1,2})月(\d{1,2})日/.exec(S.time);return m?{m:+m[1],d:+m[2]}:{m:11,d:1}};
+function renderCal(){
+  const g=gDate();if(calM==null){calM=g.m;calSel=g.d}const y=S.opts.year||2026;
+  $('cal-title').textContent=y+' 年 '+calM+' 月';$('cal-today').textContent='遊戲裡的今天：'+S.time+' · '+S.loc;
+  const grid=$('cal-grid');grid.textContent='';for(const w of '一二三四五六日')grid.append(el('div','wd',w));
+  const off=(new Date(y,calM-1,1).getDay()+6)%7,n=new Date(y,calM,0).getDate();if(calSel>n)calSel=n;
+  for(let i=0;i<off;i++)grid.append(el('div'));
+  for(let d=1;d<=n;d++){const b=el('button','day'+(g.m===calM&&g.d===d?' today':'')+(calSel===d?' sel':''),String(d));if(S.cal.some(e=>e.m===calM&&e.d===d))b.append(el('i'));b.onclick=()=>{calSel=d;renderCal()};grid.append(b)}
+  const box=$('cal-list');box.textContent='';box.append(el('h2','',calM+' 月 '+calSel+' 日'));
+  const ev=S.cal.filter(e=>e.m===calM&&e.d===calSel);if(!ev.length)box.append(el('p','note','這天沒有安排。'));
+  for(const e of ev){const c=el('div','card');const h=el('div','hd');h.append(el('b','',e.title),el('span','',e.src));const x=el('button','link','刪除');twoTap(x,'刪除',()=>{S.cal=S.cal.filter(z=>z.id!==e.id);save();renderCal()});c.append(h,x);box.append(c)}
+}
+$('cal-prev').onclick=()=>{calM=(calM+10)%12+1;calSel=1;renderCal()};
+$('cal-next').onclick=()=>{calM=calM%12+1;calSel=1;renderCal()};
+$('cal-add').onclick=()=>{const t=$('cal-text').value.trim();if(!t)return;S.cal.push({id:++uid,m:calM,d:calSel,title:t,src:'自己加的'});note('玩家在行事曆 '+calM+'月'+calSel+'日 記下：'+t);$('cal-text').value='';save();renderCal()};
+
+/* ---------- album ---------- */
+let favOnly=false;const TINT=['#2b3344,#141a26','#4a3a33,#1f1714','#3a2a33,#171012','#5a4636,#241b14','#33383f,#15181c'];
+function renderAlbum(){
+  const g=$('photos');g.textContent='';const list=S.album.filter(p=>!favOnly||p.fav);
+  $('a-count').textContent=S.album.length+' 張';$('a-fav').textContent=favOnly?'看全部':'只看收藏';
+  if(!list.length){const e=el('div','empty',favOnly?'還沒有收藏。點開照片可以收藏。':'相簿是空的。主線走下去，值得記住的畫面會自己存進來。');e.style.gridColumn='1/-1';g.append(e)}
+  for(const p of list){const b=el('button','ph');b.style.background=PICS[p.id]?'linear-gradient(transparent 35%,rgba(16,11,13,.85)),url("'+PICS[p.id]+'") center/cover':'linear-gradient(170deg,'+TINT[p.id%TINT.length]+')';b.setAttribute('aria-pressed',p.fav?'true':'false');b.title=p.time;b.append(el('span','',p.text));b.onclick=()=>openPhoto(p);g.append(b)}
+}
+$('a-fav').onclick=()=>{favOnly=!favOnly;renderAlbum()};
+
+/* ---------- chat ---------- */
+const STK=[['🫶','比愛心'],['😭','大哭'],['🤣','笑死'],['👍','讚啦'],['🥺','拜託'],['😡','生氣'],['😴','想睡'],['👀','偷看'],['☔','下雨了'],['🍜','吃飯沒']];
+function renderStks(){
+  const box=$('stks');box.textContent='';const send=d=>()=>{box.hidden=true;sendChat('［貼圖：'+d+'］',true)};
+  for(const [e,d] of STK){const b=el('button','',e);b.setAttribute('aria-label','貼圖：'+d);b.onclick=send(d);box.append(b)}
+  for(const st of IMG.stk){const b=el('button');b.setAttribute('aria-label','貼圖：'+st.name);const i=el('img');i.src=st.d;i.alt=st.name;b.append(i);b.onclick=send(st.name);box.append(b)}
+  const row=el('div','row');row.style.gridColumn='1/-1';const inp=el('input','field');inp.id='stk-name';inp.placeholder='新貼圖的意思，例如 貓貓歪頭';inp.maxLength=12;
+  const up=el('button','btn ghost','上傳');up.onclick=()=>{const name=inp.value.trim();if(!name){inp.focus();return}pickImage(220,false,d=>{const old=IMG.stk;IMG.stk=old.filter(x=>x.name!==name).concat({name,d});if(!saveImg()){IMG.stk=old;inp.value='';inp.placeholder='存不下去，空間滿了'}renderStks()},true)};
+  row.append(inp,up);box.append(row);
+}
+renderStks();
+$('c-stk').onclick=()=>{$('stks').hidden=!$('stks').hidden};
+function bubble(m){const side=m.role==='user'?'mine':'them';const st=/^［貼圖：(.+?)］$/.exec(m.content.trim());if(!st)return el('div','bub '+side,m.content);
+  const cu=IMG.stk.find(x=>x.name===st[1]);if(cu){const d=el('div','stk '+side);const i=el('img');i.src=cu.d;i.alt=cu.name;d.append(i);return d}
+  const k=STK.find(s=>s[1]===st[1]);const d=el('div','stk '+side+(k?'':' plain'),k?k[0]:'貼圖');d.append(el('small','',st[1]));return d}
+function renderRooms(){
+  const box=$('rooms');box.textContent='';
+  if(!S.contacts.length)box.append(el('div','empty','還沒有聊天。在主線裡認識的人會出現在這裡。'));
+  const list=[...S.contacts].sort((a,b)=>(S.lineUnread[b.name]||0)-(S.lineUnread[a.name]||0));
+  for(const c of list){
+    const h=S.chats[c.name]||[];const b=el('button','person');b.append(avatar(c.name));
+    const n=el('div','nm');n.append(el('b','',c.name),el('small','',h.length?h[h.length-1].content:'還沒有訊息'));b.append(n);
+    if(S.lineUnread[c.name])b.append(el('span','dot',String(S.lineUnread[c.name])));
+    b.onclick=()=>openChat(c.name);box.append(b);
+  }
+}
+function openChat(name){chatWith=name;const c=S.contacts.find(x=>x.name===name)||{stage:''};$('c-name').textContent=name;$('c-stage').textContent=c.stage;delete S.lineUnread[name];save();show('chat');renderChat()}
+function renderChat(){
+  const box=$('bubbles');box.textContent='';const h=S.chats[chatWith]||[];
+  if(!h.length)box.append(el('div','empty','還沒有訊息。'));
+  for(const m of h)box.append(bubble(m));
+  box.scrollTop=box.scrollHeight;
+}
+$('c-send').onclick=()=>sendChat($('c-text').value.trim(),false);
+async function sendChat(t,keep){
+  const btn=$('c-send');if(!t||btn.disabled||!chatWith)return;
+  const who=chatWith;const h=S.chats[who]||(S.chats[who]=[]);h.push({role:'user',content:t});if(!keep){$('c-text').value='';$('c-text').style.height='auto'}renderChat();
+  const box=$('bubbles');const bub=el('div','bub them','…');box.append(bub);box.scrollTop=box.scrollHeight;btn.disabled=true;
+  const c=S.contacts.find(x=>x.name===who)||{stage:'初識'};
+  const rules=`你在互動小說裡扮演「${who}」，用手機訊息和玩家 ${S.player} 聊天。繁體中文、台灣語感。只寫 ${who} 傳出的訊息本身，一到三句，像真人傳訊息，不要旁白、引號或括號動作。玩家傳來的「［貼圖：…］」是一張貼圖；你偶爾也可以只回一張貼圖，整則訊息寫成「［貼圖：四字內的描述］」。言行符合世界書；關係是「${c.stage}」，熟悉程度要相稱。
+
+# 世界書
+${lore()}
+
+# 目前
+遊戲時間：${S.time}
+劇情摘要：${sumText()}
+最近的劇情：${recentLog().slice(-3000)||'（故事剛開始）'}`;
+  let turns=h.slice(-20);while(turns.length&&turns[0].role!=='user')turns=turns.slice(1);
+  try{
+    const text=await ask([{role:'user',content:rules},...turns],{onText:({text})=>{bub.textContent=text;box.scrollTop=box.scrollHeight}});
+    h.push({role:'assistant',content:text});note('玩家傳訊息給 '+who+'：'+t);note(who+' 回覆：'+text);S.chats[who]=h.slice(-60);save();if(cur==='chat'&&chatWith===who)renderChat();else S.lineUnread[who]=(S.lineUnread[who]||0)+1;
+  }catch(e){h.pop();save();if(cur==='chat'&&chatWith===who){renderChat();if(!keep)$('c-text').value=t;$('bubbles').append(el('div','err',errText(e)))}}
+  btn.disabled=false;
+};
+
+/* ---------- people / notices ---------- */
+function renderPeople(){
+  const box=$('contacts');box.textContent='';
+  const row=(name,mine,c)=>{
+    const r=el('div','person');const a=el('button');a.setAttribute('aria-label','換 '+name+' 的頭像');a.append(avatar(name,mine));
+    a.onclick=()=>pickImage(200,true,d=>{if(mine)IMG.me=d;else IMG.av[name]=d;if(!saveImg()){if(mine)IMG.me='';else delete IMG.av[name]}renderPeople()});
+    const n=el(mine?'div':'button','nm');n.append(el('b','',name),el('small','',mine?'我的名片':c.note||''));if(!mine)n.onclick=()=>openChat(name);
+    r.append(a,n);if(c)r.append(el('span','stage',c.stage));box.append(r);
+  };
+  row(S.player,true);
+  if(!S.contacts.length)box.append(el('div','empty','還沒認識任何人。在主線裡遇到的人會出現在這裡。'));
+  for(const c of S.contacts)row(c.name,false,c);
+}
+function renderNotices(){
+  const box=$('notices');box.textContent='';
+  if(!S.notices.length)box.append(el('div','empty','還沒有通知。'));
+  for(const n of S.notices){const c=el('div','card');const h=el('div','hd');h.append(el('b','','第 '+n.turn+' 回合'),el('span','',n.time));c.append(h,el('p','',n.text));if(n.changes&&n.changes.length)c.append(el('p','',n.changes.join('、')));c.append(el('p','note',n.loc));box.append(c)}
+}
+
+/* ---------- scripts ---------- */
+function renderScripts(){
+  const box=$('sc-list');box.textContent='';
+  const card=(sc)=>{const on=(sc?sc.id:null)===S.scriptId;const c=el('div','card');const h=el('div','hd');h.append(el('b','',sc?sc.name:'自由模式'),el('span','',on?'使用中':''));
+    c.append(h,el('p','',sc?sc.text.slice(0,70)+(sc.text.length>70?'…':''):'不套指令，只照世界書和設定裡的開局來寫。'));
+    const r=el('div','btns');r.style.marginTop='10px';const go=el('button','btn','開始新遊戲');
+    twoTap(go,'開始新遊戲',()=>{if(busy&&ctl)ctl.abort();S.scriptId=sc?sc.id:null;resetGame();show('story')});r.append(go);
+    if(sc){const ed=el('button','btn ghost','編輯');ed.onclick=()=>openScript(sc.id);r.append(ed)}
+    c.append(r);box.append(c)};
+  card(null);for(const sc of S.scripts)card(sc);
+  box.append(el('p','note','「開始新遊戲」會清掉目前的主線進度。編輯使用中的劇本，下一回合就會照新的指令跑。'));
+}
+function openScript(id){editId=id;const sc=S.scripts.find(s=>s.id===id);$('sc-name').value=sc?sc.name:'';$('sc-text').value=sc?sc.text:'';$('sc-del').hidden=!sc;show('sedit')}
+$('sc-new').onclick=()=>openScript(null);
+$('sc-save').onclick=()=>{const name=$('sc-name').value.trim()||'未命名劇本',text=$('sc-text').value.trim();if(!text){$('sc-text').focus();return}
+  const sc=S.scripts.find(s=>s.id===editId);if(sc){sc.name=name;sc.text=text}else S.scripts.push({id:'s'+(++uid),name,text});save();show('scripts')};
+twoTap($('sc-del'),'刪除',()=>{S.scripts=S.scripts.filter(s=>s.id!==editId);if(S.scriptId===editId)S.scriptId=null;save();show('scripts')});
+
+/* ---------- settings ---------- */
+function fillSettings(){
+  $('set-name').value=S.player;$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-social').checked=!!S.opts.social;
+  $('api-on').checked=!!S.api.on;$('api-url').value=S.api.url;$('api-key').value=S.api.key;$('api-model').value=S.api.model;$('api-img').value=S.api.img||'';$('set-msg').textContent='';$('img-msg').textContent='';$('set-hue').value=S.opts.hue==null?346:S.opts.hue;
+  $('api-note').textContent=IN_CLAUDE?'你現在是在 Claude 的頁面裡看這支手機，這裡對外的連線會被擋，所以自訂 API 在這裡連不到，會用 Claude 生成。把 index.html 放到自己的網站（例如 GitHub Pages）再打開，自訂 API 就能用。':'沒勾選時無法生成。接口需要允許網頁直接連線（CORS），大部分中轉站都可以。';
+  const a=$('set-av');a.textContent='';a.style.backgroundImage=IMG.me?'url("'+IMG.me+'")':'';if(!IMG.me)a.textContent=[...S.player][0]||'我';
+}
+function readSettings(){
+  S.player=$('set-name').value.trim()||'夏湘';S.opening=$('set-open').value.trim()||S.opening;S.lore=$('set-lore').value;
+  S.opts.sumEvery=Math.min(60,Math.max(3,parseInt($('set-sum').value,10)||15));S.opts.social=$('set-social').checked;
+  S.api={on:$('api-on').checked,url:$('api-url').value.trim(),key:$('api-key').value.trim(),model:$('api-model').value.trim(),img:$('api-img').value.trim()};save();
+}
+$('set-save').onclick=()=>{readSettings();fillSettings();$('set-msg').textContent='已儲存'};
+$('api-test').onclick=async()=>{readSettings();const m=$('set-msg');m.textContent='測試中…';try{const t=await ask('請只回一個字：好');m.textContent='接通了，回覆：'+t.slice(0,20)}catch(e){m.textContent=errText(e)}};
+$('set-av-btn').onclick=()=>pickImage(200,true,d=>{IMG.me=d;if(!saveImg()){IMG.me='';$('img-msg').textContent='存不下去，空間滿了。'}fillSettings()});
+$('set-wall').onclick=()=>pickImage(1400,false,d=>{const old=IMG.wall;IMG.wall=d;if(!saveImg()){IMG.wall=old;$('img-msg').textContent='這張太大存不下，換一張小一點的。'}else $('img-msg').textContent='桌布換好了';applyWall()});
+$('set-hue').oninput=e=>{S.opts.hue=+e.target.value;applyHue();save()};
+$('hue-reset').onclick=()=>{S.opts.hue=null;$('set-hue').value=346;applyHue();save()};
+twoTap($('stk-clear'),'清除自訂貼圖',()=>{IMG.stk=[];saveImg();renderStks();$('img-msg').textContent='自訂貼圖清掉了'});
+$('set-wall-x').onclick=()=>{IMG.wall='';saveImg();applyWall();$('img-msg').textContent='已換回預設'};
+
+for(const id of ['act','f-text','c-text','cal-text'])$(id).addEventListener('input',e=>{e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight+2,120)+'px'});
+applyHue();applyWall();renderHome();
+</script>
+
+</body></html>
