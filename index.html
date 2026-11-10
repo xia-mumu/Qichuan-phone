@@ -526,9 +526,13 @@ ${S.phone.join('\n')||'（沒有）'}
 # 這一回合
 ${S.turn===0?'這是開局。'+(sc?'照模擬器指令開場；指令沒寫開場時用這個情境：':'開場情境：')+S.opening:'玩家行動：'+action}
 
+# 社群 App 劇情連動
+如果本回合劇情中確實有人在川訊（X）、棲影（IG）或川串（Threads）發布了新貼文，請將已發生的貼文同步填入 socialPosts；沒有實際發文就給空陣列。這只是從同一回合已生成的劇情擷取資料，不要額外編造發文、不要為了社群連動安排角色發文。貼文正文須與 story 裡實際出現的內容一致，不能把角色內心幻想當成已發布貼文。若是匿名帳號，只填公開顯示的名稱與帳號，絕不暴露真實身份。玩家在劇情裡尚未得知的匿名身份，不能因為 App 連動而讓玩家角色自動知道。socialPosts 不代表角色已讀過該篇貼文。
+
 # 輸出
 只回一個 JSON 物件，不要任何其他文字：
-{"story":"這回合的劇情","time":"推進後的遊戲時間，格式同 11月1日 星期日 09:38","location":"城市·地點","choices":[{"title":"八字內的行動","hint":"十字內的補充"}],"contacts":[{"name":"姓名","stage":"關係階段，如 初識","note":"十五字內，玩家目前對這個人的印象"}],"stats":{"player":[{"name":"數值名","value":"目前的值"}],"chars":[{"who":"角色名","items":[{"name":"數值名","value":"目前的值"}]}]},"changes":["本回合的數值變化，如 聞止水 好感 +2"],"photos":["一句照片描述"],"events":[{"date":"11月5日","title":"十二字內的事"}],"notice":"四十字內，這回合發生了什麼"}
+{"story":"這回合的劇情","time":"推進後的遊戲時間，格式同 11月1日 星期日 09:38","location":"城市·地點","choices":[{"title":"八字內的行動","hint":"十字內的補充"}],"contacts":[{"name":"姓名","stage":"關係階段，如 初識","note":"十五字內，玩家目前對這個人的印象"}],"stats":{"player":[{"name":"數值名","value":"目前的值"}],"chars":[{"who":"角色名","items":[{"name":"數值名","value":"目前的值"}]}]},"changes":["本回合的數值變化，如 聞止水 好感 +2"],"photos":["一句照片描述"],"events":[{"date":"11月5日","title":"十二字內的事"}],"notice":"四十字內，這回合發生了什麼","socialPosts":[{"app":"x 或 ig 或 th","name":"公開顯示名稱","handle":"公開帳號（不含@）","text":"本回合實際發布的貼文正文","image":"若是棲影照片則填畫面描述，否則空字串"}]}
+socialPosts 只收錄本回合確實發出的新貼文；無發文時必須是 []。如果劇本展示了「僅讀者可見」的匿名小帳貼文，仍可同步至川訊，但公開姓名和帳號不得洩漏主人真實身份，也不能讓玩家角色憑空知道。
 photos 是這回合會留在玩家手機相簿裡的 0 到 2 張照片，寫成一句具體的畫面描述：玩家拍下的、別人傳來的，或眼前值得記住的一幕。
 events 是這回合劇情裡新約好、新得知、有明確日期的事（約定、展覽、截止日、活動）；沒有就給空陣列，行事曆上已有的不要重複。到了行事曆上的日子，劇情要記得這件事。
 choices 沒有另外規定時給四個方向不同的選項。contacts 是玩家至今實際見過面的人的完整名單。stats 是更新後的完整數值；劇本沒有定義數值時，player 與 chars 給空陣列、changes 給空陣列。`;
@@ -613,7 +617,18 @@ async function playTurn(action){
     S.changes=Array.isArray(r.changes)?r.changes.map(String):[];
      const lastStory=S.log[S.log.length-1];if(lastStory&&lastStory.r==='dm')lastStory.status=statusSnapshot();
     for(const ph of Array.isArray(r.photos)?r.photos.slice(0,2):[])if(str(ph,'')){S.album.unshift({id:++uid,text:str(ph,''),time:S.time,turn:S.turn,fav:false});S.unread.album++}
-    S.album=S.album.slice(0,300);S.phone=[];
+    // 同一回合內直接同步劇情已發布的貼文，不額外呼叫 API。
+     for(const p of Array.isArray(r.socialPosts)?r.socialPosts.slice(0,12):[]){
+       if(!p||!['x','ig','th'].includes(p.app)||typeof p.text!=='string'||!p.text.trim())continue;
+       const handle=str(p.handle,'qichuan').replace(/^@/,'');
+       const name=str(p.name,handle);
+       const exists=S[p.app].some(q=>q.storyTurn===S.turn&&q.handle===handle&&q.text===p.text.trim());
+       if(exists)continue;
+       S[p.app].unshift({id:++uid,name,handle,text:p.text.trim(),image:str(p.image,''),time:S.time,likes:0,re:0,liked:false,storyTurn:S.turn});
+       S[p.app]=S[p.app].slice(0,100);
+       if(!(cur==='feed'&&curFeed===p.app))S.unread[p.app]++;
+     }
+     S.album=S.album.slice(0,300);S.phone=[];
     for(const ev of Array.isArray(r.events)?r.events:[]){const m=ev&&/(\d{1,2})月(\d{1,2})日/.exec(String(ev.date||''));const t=ev&&str(ev.title,'');if(!m||!t||S.cal.some(e=>e.m===+m[1]&&e.d===+m[2]&&e.title===t))continue;S.cal.push({id:++uid,m:+m[1],d:+m[2],title:t,src:'劇情'});S.unread.cal++}
     S.notices.unshift({turn:S.turn,time:S.time,loc:S.loc,text:str(r.notice,r.story.trim().slice(0,40)),changes:S.changes});S.notices=S.notices.slice(0,200);
     S.unread.notice++;if(cur!=='story')S.unread.story++;
