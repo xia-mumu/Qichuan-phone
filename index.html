@@ -284,7 +284,6 @@ label.tg input{width:20px;height:20px;accent-color:var(--rose)}
     <label class="f" for="set-storylen">主線劇情長度<select id="set-storylen"><option value="short">精簡｜200～400 字</option><option value="standard">標準｜400～700 字</option><option value="immersive">沉浸｜800～1200 字（預設）</option><option value="novel">長篇小說｜1500～2000 字</option></select></label>
     <p class="note">只影響主線敘事，不改變 LINE 簡訊長度。隨時可切換，無須重新開局；劇本若有明確字數規定，則以劇本為準。字數為建議範圍，不強制灌水。</p>
     <label class="f" for="set-sum">每幾回合自動整理一次劇情摘要<input id="set-sum" type="number" min="3" max="60" inputmode="numeric"></label>
-    <label class="tg" for="set-social"><input type="checkbox" id="set-social">每回合後，社群 App 在後台自己更新</label>
     <h2>AI 接口</h2>
     <label class="tg" for="api-on"><input type="checkbox" id="api-on">使用我自己的 API（OpenAI 相容格式）</label>
     <label class="f" for="api-url">API 網址（到 /v1 為止）<input id="api-url" placeholder="https://example.com/v1" autocomplete="off"></label>
@@ -619,7 +618,6 @@ async function playTurn(action){
     S.notices.unshift({turn:S.turn,time:S.time,loc:S.loc,text:str(r.notice,r.story.trim().slice(0,40)),changes:S.changes});S.notices=S.notices.slice(0,200);
     S.unread.notice++;if(cur!=='story')S.unread.story++;
     save();
-    if(S.opts.social)bg('社群動態更新中',socialUpdate);
     if(S.turn-S.sumTurn>=Math.max(3,S.opts.sumEvery||15))bg('整理劇情摘要中',summarize);
   }catch(e){
     if(S.log.length&&S.log[S.log.length-1].r==='me'&&S.turn>0)S.log.pop();prev=null;
@@ -734,7 +732,7 @@ function renderFeed(){
   const st=$('stories');st.hidden=k!=='ig';
   if(k==='ig'){st.textContent='';const mk=(n,mine)=>{const d=el('div');d.append(avatar(n,mine),el('span','',mine?'你的動態':n));st.append(d)};mk(S.player,true);for(const c of S.contacts.slice(0,12))mk(c.name,false)}
   const box=$('posts');box.textContent='';
-  if(!S[k].length)box.append(el('div','empty','還沒有貼文。主線每走一回合，這裡會在後台自己更新；也可以按右上角刷新。'));
+  if(!S[k].length)box.append(el('div','empty','還沒有貼文。按右上角的刷新按鈕，才會使用 API 生成新的社群動態。'));
   for(const p of S[k]){
     const mine=isMe(p)&&!p.anon;const like=el('button','','♥ '+(p.likes+(p.liked?1:0)));like.setAttribute('aria-pressed',p.liked?'true':'false');like.onclick=()=>{p.liked=!p.liked;save();renderFeed()};
     if(k==='ig'){
@@ -915,14 +913,14 @@ twoTap($('sc-del'),'刪除',()=>{S.scripts=S.scripts.filter(s=>s.id!==editId);if
 
 /* ---------- settings ---------- */
 function fillSettings(){
-  $('set-name').value=S.player;$('set-persona').value=S.persona||'';$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-storylen').value=STORY_LENGTHS[S.opts.storyLength]?S.opts.storyLength:'immersive';$('set-social').checked=!!S.opts.social;
+  $('set-name').value=S.player;$('set-persona').value=S.persona||'';$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-storylen').value=STORY_LENGTHS[S.opts.storyLength]?S.opts.storyLength:'immersive';
   $('api-on').checked=!!S.api.on;$('api-url').value=S.api.url;$('api-key').value=S.api.key;$('api-model').value=S.api.model;$('api-strip').checked=!!S.api.strip;setTimeout(()=>{fillPicks();keyInfo()},0);$('api-model2').value=S.api.model2||'';$('set-lorefull').checked=!S.opts.loreFull;$('lore-info').textContent=loreStat?'上一次生成送出：'+loreStat:'';$('api-img').value=S.api.img||'';$('set-msg').textContent='';$('img-msg').textContent='';$('set-hue').value=S.opts.theme?S.opts.theme.h:346;renderThemes();
   $('api-note').textContent=IN_CLAUDE?'你現在是在 Claude 的頁面裡看這支手機，這裡對外的連線會被擋，所以自訂 API 在這裡連不到，會用 Claude 生成。把 index.html 放到自己的網站（例如 GitHub Pages）再打開，自訂 API 就能用。':'沒勾選時無法生成。接口需要允許網頁直接連線（CORS），大部分中轉站都可以。';
   const a=$('set-av');a.textContent='';a.style.backgroundImage=IMG.me?'url("'+IMG.me+'")':'';if(!IMG.me)a.textContent=[...S.player][0]||'我';
 }
 function readSettings(){
   S.player=$('set-name').value.trim()||'夏湘';S.persona=$('set-persona').value.trim();S.opening=$('set-open').value.trim()||S.opening;S.lore=$('set-lore').value;
-  S.opts.storyLength=STORY_LENGTHS[$('set-storylen').value]?$('set-storylen').value:'immersive';S.opts.sumEvery=Math.min(60,Math.max(3,parseInt($('set-sum').value,10)||15));S.opts.social=$('set-social').checked;S.opts.loreFull=!$('set-lorefull').checked;
+  S.opts.storyLength=STORY_LENGTHS[$('set-storylen').value]?$('set-storylen').value:'immersive';S.opts.sumEvery=Math.min(60,Math.max(3,parseInt($('set-sum').value,10)||15));S.opts.loreFull=!$('set-lorefull').checked;
   S.api={on:$('api-on').checked,url:$('api-url').value.trim(),key:cleanKey($('api-key').value),model:$('api-model').value.trim(),model2:$('api-model2').value.trim(),img:$('api-img').value.trim(),list:S.api.list||[],strip:$('api-strip').checked};save();
 }
 $('set-save').onclick=()=>{readSettings();fillSettings();$('set-msg').textContent='已儲存'};
