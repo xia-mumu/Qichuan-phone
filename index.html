@@ -165,6 +165,7 @@ button:disabled{opacity:.45;cursor:default}
 h2{font-size:13px;color:var(--silver);letter-spacing:.14em;margin:10px 0 0;font-weight:700}
 label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--soft)}
 label.f input,label.f textarea{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--fg);font-size:15px;min-width:0;width:100%}
+label.f select{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--fg);font:inherit;font-size:15px;width:100%;min-width:0}
 label.f textarea{min-height:120px;resize:vertical;line-height:1.6}
 #set-lore,#sc-text{min-height:260px}
 label.tg{display:flex;align-items:center;gap:10px;font-size:14px}
@@ -281,9 +282,10 @@ label.tg input{width:20px;height:20px;accent-color:var(--rose)}
     <label class="tg" for="api-on"><input type="checkbox" id="api-on">使用我自己的 API（OpenAI 相容格式）</label>
     <label class="f" for="api-url">API 網址（到 /v1 為止）<input id="api-url" placeholder="https://example.com/v1" autocomplete="off"></label>
     <label class="f" for="api-key">API Key<input id="api-key" type="password" autocomplete="off"></label>
-    <label class="f" for="api-model">模型名稱<input id="api-model" placeholder="例如 claude-sonnet-5-5" autocomplete="off"></label>
-    <label class="f" for="api-model2">社群和聊天用的便宜模型（選填，沒填就跟上面一樣）<input id="api-model2" placeholder="例如 claude-haiku-5-5" autocomplete="off"></label>
-    <label class="f" for="api-img">生圖模型（選填，接口要支援 /images/generations）<input id="api-img" placeholder="例如 gpt-image-1" autocomplete="off"></label>
+    <label class="f" for="api-model">模型名稱<input id="api-model" placeholder="例如 claude-sonnet-5-5" autocomplete="off"><select class="pick" data-for="api-model" aria-label="從清單選主線模型" hidden></select></label>
+    <label class="f" for="api-model2">社群和聊天用的便宜模型（選填，沒填就跟上面一樣）<input id="api-model2" placeholder="例如 claude-haiku-5-5" autocomplete="off"><select class="pick" data-for="api-model2" aria-label="從清單選便宜模型" hidden></select></label>
+    <label class="f" for="api-img">生圖模型（選填，接口要支援 /images/generations）<input id="api-img" placeholder="例如 gpt-image-1" autocomplete="off"><select class="pick" data-for="api-img" aria-label="從清單選生圖模型" hidden></select></label>
+    <div class="btns"><button class="btn ghost" id="api-list">載入模型清單</button><span class="note" id="list-msg"></span></div>
     <p class="note" id="api-note"></p>
     <div class="btns"><button class="btn" id="set-save">儲存設定</button><button class="btn ghost" id="api-test">測試接口</button><span class="note" id="set-msg"></span></div>
     <p class="note">進度、圖片和 API Key 都只存在這台裝置的瀏覽器裡，換裝置或清除瀏覽資料就會不見。</p>
@@ -862,16 +864,37 @@ twoTap($('sc-del'),'刪除',()=>{S.scripts=S.scripts.filter(s=>s.id!==editId);if
 /* ---------- settings ---------- */
 function fillSettings(){
   $('set-name').value=S.player;$('set-persona').value=S.persona||'';$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-social').checked=!!S.opts.social;
-  $('api-on').checked=!!S.api.on;$('api-url').value=S.api.url;$('api-key').value=S.api.key;$('api-model').value=S.api.model;$('api-model2').value=S.api.model2||'';$('set-lorefull').checked=!S.opts.loreFull;$('lore-info').textContent=loreStat?'上一次生成送出：'+loreStat:'';$('api-img').value=S.api.img||'';$('set-msg').textContent='';$('img-msg').textContent='';$('set-hue').value=S.opts.theme?S.opts.theme.h:346;renderThemes();
+  $('api-on').checked=!!S.api.on;$('api-url').value=S.api.url;$('api-key').value=S.api.key;$('api-model').value=S.api.model;setTimeout(fillPicks,0);$('api-model2').value=S.api.model2||'';$('set-lorefull').checked=!S.opts.loreFull;$('lore-info').textContent=loreStat?'上一次生成送出：'+loreStat:'';$('api-img').value=S.api.img||'';$('set-msg').textContent='';$('img-msg').textContent='';$('set-hue').value=S.opts.theme?S.opts.theme.h:346;renderThemes();
   $('api-note').textContent=IN_CLAUDE?'你現在是在 Claude 的頁面裡看這支手機，這裡對外的連線會被擋，所以自訂 API 在這裡連不到，會用 Claude 生成。把 index.html 放到自己的網站（例如 GitHub Pages）再打開，自訂 API 就能用。':'沒勾選時無法生成。接口需要允許網頁直接連線（CORS），大部分中轉站都可以。';
   const a=$('set-av');a.textContent='';a.style.backgroundImage=IMG.me?'url("'+IMG.me+'")':'';if(!IMG.me)a.textContent=[...S.player][0]||'我';
 }
 function readSettings(){
   S.player=$('set-name').value.trim()||'夏湘';S.persona=$('set-persona').value.trim();S.opening=$('set-open').value.trim()||S.opening;S.lore=$('set-lore').value;
   S.opts.sumEvery=Math.min(60,Math.max(3,parseInt($('set-sum').value,10)||15));S.opts.social=$('set-social').checked;S.opts.loreFull=!$('set-lorefull').checked;
-  S.api={on:$('api-on').checked,url:$('api-url').value.trim(),key:$('api-key').value.trim(),model:$('api-model').value.trim(),model2:$('api-model2').value.trim(),img:$('api-img').value.trim()};save();
+  S.api={on:$('api-on').checked,url:$('api-url').value.trim(),key:$('api-key').value.trim(),model:$('api-model').value.trim(),model2:$('api-model2').value.trim(),img:$('api-img').value.trim(),list:S.api.list||[]};save();
 }
 $('set-save').onclick=()=>{readSettings();fillSettings();$('set-msg').textContent='已儲存'};
+function fillPicks(){
+  const list=Array.isArray(S.api.list)?S.api.list:[];
+  for(const sel of document.querySelectorAll('select.pick')){
+    sel.hidden=!list.length;sel.textContent='';const cur=$(sel.dataset.for).value.trim();
+    const o0=el('option','','從清單選（共 '+list.length+' 個）');o0.value='';sel.append(o0);
+    for(const m of list){const o=el('option','',m);o.value=m;if(m===cur)o.selected=true;sel.append(o)}
+    sel.onchange=()=>{if(sel.value)$(sel.dataset.for).value=sel.value};
+  }
+}
+$('api-list').onclick=async()=>{
+  const m=$('list-msg'),url=$('api-url').value.trim().replace(/\/+$/,'').replace(/\/chat\/completions$/,''),key=$('api-key').value.trim();
+  if(!url||!key){m.textContent='先填 API 網址和 Key。';return}
+  m.textContent='載入中…';
+  try{
+    const res=await fetch(url+'/models',{headers:{Authorization:'Bearer '+key}});
+    if(!res.ok){m.textContent='接口回傳錯誤 '+res.status+'，這個接口可能不提供模型清單，請手動填。';return}
+    const j=await res.json();const list=(Array.isArray(j.data)?j.data:Array.isArray(j)?j:[]).map(x=>typeof x==='string'?x:x&&x.id).filter(Boolean).sort();
+    if(!list.length){m.textContent='清單是空的，請手動填。';return}
+    S.api.list=list.slice(0,500);save();fillPicks();m.textContent='載入 '+list.length+' 個模型，從下拉選單選。';
+  }catch(e){m.textContent=ERR.api_net}
+};
 $('api-test').onclick=async()=>{readSettings();const m=$('set-msg');m.textContent='測試中…';try{const t=await ask('請只回一個字：好');m.textContent='接通了，回覆：'+t.slice(0,20)}catch(e){m.textContent=errText(e)}};
 $('set-av-btn').onclick=()=>pickImage(200,true,d=>{IMG.me=d;if(!saveImg()){IMG.me='';$('img-msg').textContent='存不下去，空間滿了。'}fillSettings()});
 $('set-wall').onclick=()=>pickImage(1400,false,d=>{const old=IMG.wall;IMG.wall=d;if(!saveImg()){IMG.wall=old;$('img-msg').textContent='這張太大存不下，換一張小一點的。'}else $('img-msg').textContent='桌布換好了';applyWall()});
