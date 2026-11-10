@@ -196,6 +196,7 @@ label.tg input{width:20px;height:20px;accent-color:var(--rose)}
   <div class="scroll" id="log"></div>
   <div class="panel">
     <div class="choices" id="choices"></div>
+    <div class="row" style="justify-content:flex-end"><button class="link" id="retry-story" type="button" hidden>↻ 重新生成上一則回覆</button></div>
     <div class="row"><textarea class="field" id="act" rows="1" placeholder="或者自己寫想做的事…"></textarea><button class="send" id="go" aria-label="送出"><svg viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></svg></button></div>
   </div>
 </section>
@@ -554,9 +555,17 @@ function renderStory(toEnd){
   }
   if(storyErr)log.append(el('div','err',storyErr));
   renderChoices();$('go').disabled=busy;
+   const retry=$('retry-story');retry.hidden=!(prev&&S.turn>0);retry.disabled=busy;
   if(toEnd)log.scrollTop=log.scrollHeight;
   else log.scrollTop=previousScroll;
 }
+function retryStory(){
+  if(!prev||busy||S.turn===0)return;
+  const snapshot=prev,action=lastAction;
+  Object.assign(S,JSON.parse(snapshot));prev=null;
+  picked.clear();save();show('story');playTurn(action);
+}
+$('retry-story').onclick=retryStory;
 function renderChoices(){
   const c=$('choices');c.textContent='';if(busy)return;
   S.choices.forEach((ch,i)=>{
@@ -623,7 +632,7 @@ $('menu').onclick=()=>sheet('選單','story',b=>{
   const m=el('div','menu');const add=(t,fn)=>{const x=el('button','',t);x.onclick=fn;m.append(x);return x};
   add('查看數值',openStats);add('劇情摘要',openSummaries);add('存檔／讀檔',openSaves);
   add('編輯目前劇本',()=>{const sc=activeScript();sc?openScript(sc.id):show('scripts')});
-  const rd=add('重寫這回合',()=>{if(!prev||busy)return;Object.assign(S,JSON.parse(prev));prev=null;save();show('story');playTurn(lastAction)});rd.disabled=!prev||busy||S.turn===0;
+  const rd=add('重寫這回合',retryStory);rd.disabled=!prev||busy||S.turn===0;
   twoTap(add('重新開始',()=>{}),'重新開始',()=>{if(busy&&ctl)ctl.abort();resetGame();show('story')});
   b.append(m,el('p','note','重新開始會清掉主線、社群、通知和聊天；世界書、劇本和設定會留著。'));
 });
