@@ -272,6 +272,8 @@ label.tg input{width:20px;height:20px;accent-color:var(--rose)}
     <label class="f" for="set-name">你的名字<input id="set-name" maxlength="20"></label>
     <label class="f" for="set-open">開局（劇本沒寫開場時，從這裡寫起）<textarea id="set-open"></textarea></label>
     <label class="f" for="set-lore">世界書（完整設定貼在這裡，角色會照它演）<textarea id="set-lore"></textarea></label>
+    <label class="tg" for="set-lorefull"><input type="checkbox" id="set-lorefull">世界書只送跟當下有關的條目（省 token）</label>
+    <p class="note">條目用【標題】開頭，底下可以加一行「關鍵字：A,B,C」；劇情提到關鍵字時才會送出那一條。第一個 ＝＝＝ 分隔線之前的條目每次都會送。<span id="lore-info"></span></p>
     <label class="f" for="set-sum">每幾回合自動整理一次劇情摘要<input id="set-sum" type="number" min="3" max="60" inputmode="numeric"></label>
     <label class="tg" for="set-social"><input type="checkbox" id="set-social">每回合後，社群 App 在後台自己更新</label>
     <h2>AI 接口</h2>
@@ -279,6 +281,7 @@ label.tg input{width:20px;height:20px;accent-color:var(--rose)}
     <label class="f" for="api-url">API 網址（到 /v1 為止）<input id="api-url" placeholder="https://example.com/v1" autocomplete="off"></label>
     <label class="f" for="api-key">API Key<input id="api-key" type="password" autocomplete="off"></label>
     <label class="f" for="api-model">模型名稱<input id="api-model" placeholder="例如 claude-sonnet-5-5" autocomplete="off"></label>
+    <label class="f" for="api-model2">社群和聊天用的便宜模型（選填，沒填就跟上面一樣）<input id="api-model2" placeholder="例如 claude-haiku-5-5" autocomplete="off"></label>
     <label class="f" for="api-img">生圖模型（選填，接口要支援 /images/generations）<input id="api-img" placeholder="例如 gpt-image-1" autocomplete="off"></label>
     <p class="note" id="api-note"></p>
     <div class="btns"><button class="btn" id="set-save">儲存設定</button><button class="btn ghost" id="api-test">測試接口</button><span class="note" id="set-msg"></span></div>
@@ -296,11 +299,11 @@ const DEFAULT_LORE="【棲川市｜世界核心】\n棲川市是臺灣中部的�
 const GAME=()=>({turn:0,time:'11月1日 星期日 09:00',loc:'棲川市',log:[],choices:[],contacts:[],notices:[],stats:{player:[],chars:[]},changes:[],summaries:[],sumTurn:0,x:[],ig:[],th:[],chats:{},lineUnread:{},album:[],accts:[],acct:null,acctOf:{x:null,ig:null,th:null},phone:[],cal:[],unread:{story:0,x:0,ig:0,th:0,notice:0,album:0,cal:0}});
 const CORE=['turn','time','loc','log','choices','contacts','notices','stats','changes','summaries','sumTurn'];
 const GAMEKEYS=Object.keys(GAME());
-let S=Object.assign({player:'夏湘',opening:'雨停的星期日早晨，你走進白汀路上的白汀書店。二樓正在辦一檔紀實攝影展。',lore:DEFAULT_LORE,api:{on:false,url:'',key:'',model:'',img:''},opts:{sumEvery:15,social:true,year:2026},scripts:[],scriptId:null},GAME());
+let S=Object.assign({player:'夏湘',opening:'雨停的星期日早晨，你走進白汀路上的白汀書店。二樓正在辦一檔紀實攝影展。',lore:DEFAULT_LORE,api:{on:false,url:'',key:'',model:'',model2:'',img:''},opts:{sumEvery:15,social:true,year:2026},scripts:[],scriptId:null},GAME());
 let IMG={wall:'',me:'',av:{},stk:[]};
 try{
   const old=localStorage.getItem('qichuan-phone-v1');if(old){const o=JSON.parse(old);for(const k of ['player','opening','lore'])if(o[k])S[k]=o[k]}
-  const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);S=Object.assign(S,o);S.api=Object.assign({on:false,url:'',key:'',model:'',img:''},o.api);S.opts=Object.assign({sumEvery:15,social:true,year:2026},o.opts);S.unread=Object.assign(GAME().unread,o.unread)}
+  const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);S=Object.assign(S,o);S.api=Object.assign({on:false,url:'',key:'',model:'',model2:'',img:''},o.api);S.opts=Object.assign({sumEvery:15,social:true,year:2026},o.opts);S.unread=Object.assign(GAME().unread,o.unread)}
   const im=localStorage.getItem(KEY+'-img');if(im)IMG=Object.assign(IMG,JSON.parse(im));
 }catch(e){}
 if(!S.lore||S.lore.startsWith('（這裡先放一點點骨架'))S.lore=DEFAULT_LORE;
@@ -327,7 +330,7 @@ async function apiCall(msgs,o){
   const url=a.url.trim().replace(/\/+$/,'');const ep=/\/chat\/completions$/.test(url)?url:url+'/chat/completions';
   if(msgs.length>1&&msgs[0].role==='user'&&msgs[1].role==='user')msgs=[{role:'system',content:msgs[0].content},...msgs.slice(1)];
   let res;
-  try{res=await fetch(ep,{method:'POST',signal:o.signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+a.key.trim()},body:JSON.stringify({model:a.model.trim(),messages:msgs,stream:true})})}
+  try{res=await fetch(ep,{method:'POST',signal:o.signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+a.key.trim()},body:JSON.stringify({model:(o.lite&&a.model2&&a.model2.trim())||a.model.trim(),messages:msgs,stream:true})})}
   catch(e){throw {code:e&&e.name==='AbortError'?'cancelled':'api_net'}}
   if(!res.ok){let m='';try{m=(await res.text()).slice(0,200)}catch(e){}throw {code:'api_http',message:res.status+' '+m}}
   if((res.headers.get('content-type')||'').includes('application/json')){const j=await res.json();return String(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content||'')}
@@ -433,6 +436,31 @@ function twoTap(btn,label,fn){let armed=false,t;btn.onclick=()=>{if(armed){clear
 
 /* ---------- prompts ---------- */
 const lore=()=>S.lore.slice(0,60000);
+const KEYMAP={'地理骨架':'棲川河,青川橋,南川橋,新生橋,過橋,河邊','中央區與中央公園':'中央區,市中心,市政府,中央公園','南町':'南町,半醒,未眠書房,酒館,古著,Live House,書店','舊城區與榕安市場':'舊城,榕安市場,市場,廟,老街','明德佛具彩繪':'明德,佛具,神像,彩繪','棲川河濱公園':'河濱,河堤,慢跑,自行車道','住宅區':'住宅區,青硯,公寓,租屋,搬家','棲川車站':'車站,火車,高鐵,轉乘,地下道','其他地點':'南陵山,爬山,登山,白川廣場,百貨,影城,電影,港口,濕地,春水,麵店','棲川大學':'棲川大學,棲大,鏡湖,圖書館,校園,學期,期中,期末,校慶,教授,上課,研究室','城市六大盛事':'盛事,節慶,花窗節,百味祭,不眠夜,彩虹過橋,遊行,回聲祭,留燈夜,市集,3月,5月,8月,9月,11月,12月','機構':'法院,地檢,檢察,警局,警察,刑警,派出所,醫院,醫學中心,急診,法醫,相驗,解剖,澄野,開庭','案件':'案件,命案,兇手,嫌疑,證據,線索,屍體','徐汀云':'徐汀云,汀云,徐教授,徐老師,Mochi,徐明崇,葉蘊,徐汀禾','游未遲':'游未遲,未遲,游法醫,阿黑,游建峰,林慧真','林晏洄':'林晏洄,晏洄,林潤','聞止水':'聞止水,止水,攝影師,攝影展','程不言':'程不言,程律師,律師','杜今朝':'杜今朝,今朝,杜警官,老杜','何映真':'何映真,映真,前妻','簡牧陽':'簡牧陽,牧陽,阿董','蘇柏欽':'蘇柏欽,柏欽,阿欽,欽哥,蘇明德,陳麗珠,林冠宇,冠宇,麻將','傅承億':'傅承億,傅總,傅某,董事長,地下道','傅氏控股集團':'傅氏,傅承億,傅總,募資','陸承澤':'陸承澤,陸氏,陸總','地下道生活圈':'地下道,老周,林小安,三號,阿德,烤地瓜','棲大犯罪學工作圈':'許又青,梁策,白榆,犯罪學','法醫工作圈':'沈藤,周蛹若,陳紹安,許卿荷,法醫','摯友群｜徐教授人類觀察倫理審查會':'審查會,摯友,群組,聚會,半醒','寵物':'Mochi,阿黑,阿董,守宮,黑貓,橘貓,寵物'};
+function addKeys(t){return t.split('\n').map((ln,i,a)=>{const m=/^【([^】]+)】\s*$/.exec(ln)||/^＝＝＝\s*(.+?)\s*＝＝＝\s*$/.exec(ln);return m&&KEYMAP[m[1]]&&!/^關鍵字[:：]/.test(a[i+1]||'')?ln+'\n關鍵字：'+KEYMAP[m[1]]:ln}).join('\n')}
+if(!S.opts.keysAdded){S.lore=addKeys(S.lore);S.opts.keysAdded=true}
+let loreStat='';
+function splitLore(t){
+  const out=[];let cur={title:'',lines:[],always:true},always=true;
+  for(const ln of t.split('\n')){
+    const sec=/^＝＝＝\s*(.+?)\s*＝＝＝\s*$/.exec(ln),ent=/^【([^】]+)】/.exec(ln);
+    if(sec||ent){out.push(cur);if(sec)always=false;cur={title:(sec||ent)[1],lines:[ln],always}}else cur.lines.push(ln);
+  }
+  out.push(cur);
+  return out.filter(c=>c.lines.join('').trim()).map(c=>{
+    const text=c.lines.join('\n').trim();const k=/^關鍵字[:：](.+)$/m.exec(text);
+    const keys=(k?k[1].split(/[,，、]/):[]).concat(c.title.split(/[｜、與／\/（）()\s]+/)).map(x=>x.trim()).filter(x=>x.length>=2);
+    return {text,keys,always:c.always||c.lines.length<=1||(!k&&!c.title)};
+  });
+}
+function loreFor(scan){
+  if(S.opts.loreFull){loreStat='整份世界書';return lore()}
+  const parts=splitLore(S.lore);if(parts.length<3){loreStat='整份世界書（沒有分條目）';return lore()}
+  const hit=parts.filter(c=>c.always||c.keys.some(k=>scan.includes(k)));
+  loreStat='世界書 '+hit.length+'／'+parts.length+' 條';
+  return (hit.map(c=>c.text).join('\n\n')+'\n\n（這次只附上和目前情境有關的條目。固定角色索引裡有、但沒有附詳細條目的人，如果這回合要讓他出現，只寫不違反索引的中性描述，不要自創外貌、家庭或背景細節。）').slice(0,60000);
+}
+const scanBase=()=>[S.loc,S.time,S.contacts.map(c=>c.name).join(' '),S.phone.join(' '),S.log.slice(-4).map(x=>x.t).join(' '),S.choices.map(c=>c.title+c.hint).join(' '),S.cal.filter(e=>{const g=gDate();return e.m===g.m&&e.d===g.d}).map(e=>e.title).join(' ')].join(' ');
 const activeScript=()=>S.scripts.find(s=>s.id===S.scriptId)||null;
 const sumText=()=>S.summaries.map(s=>'【第 '+s.from+'–'+s.to+' 回合】'+s.text).join('\n')||'（尚無）';
 const recentLog=()=>S.log.filter(x=>x.turn>S.sumTurn).slice(-40).map(x=>(x.r==='me'?'【玩家行動】':'【敘事】')+x.t).join('\n\n');
@@ -445,7 +473,7 @@ ${sc?`
 ${sc.text.slice(0,40000)}
 `:''}
 # 世界書
-${lore()}
+${loreFor(scanBase()+' '+action+' '+(S.turn===0?S.opening:'')+' '+(sc?sc.text:''))}
 
 # 玩家
 名字：${S.player}
@@ -617,7 +645,7 @@ async function socialUpdate(){
   const r=await ask(`你在為一部互動小說寫城市裡的社群動態，讓手機裡的四個 App 像真的有人在用。繁體中文、台灣語感，短、具體、不浮誇，像真的有人在過日子。
 
 # 世界書
-${lore()}
+${loreFor(scanBase()+' '+['x','ig','th'].map(k=>S[k].slice(0,5).map(p=>p.name+p.text).join(' ')).join(' '))}
 
 # 現在
 遊戲時間：${S.time}；玩家 ${S.player} 在：${S.loc}
@@ -635,7 +663,7 @@ ${brief('th')}
 
 只回一個 JSON 物件：
 {"x":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文","image":"照片的一句文字描述或空字串"}],"ig":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文說明","image":"照片內容的一句文字描述"}],"threads":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文"}],"line":[{"from":"玩家認識的人的姓名","text":"訊息"}]}
-x 給 1 到 2 則，ig 給 0 到 1 則，threads 給 1 到 2 則。發文者是店家、居民、在地帳號或世界書裡的角色，同一個人的帳號名稱前後要一致。line 是認識的人主動傳給玩家的訊息，只有在劇情上說得通時才給一則，否則給空陣列；from 必須是「玩家認識的人」裡的名字。不要讓路人洩漏玩家的私下對話。`,{json:true,quick:true});
+x 給 1 到 2 則，ig 給 0 到 1 則，threads 給 1 到 2 則。發文者是店家、居民、在地帳號或世界書裡的角色，同一個人的帳號名稱前後要一致。line 是認識的人主動傳給玩家的訊息，只有在劇情上說得通時才給一則，否則給空陣列；from 必須是「玩家認識的人」裡的名字。不要讓路人洩漏玩家的私下對話。`,{json:true,quick:true,lite:true});
   if(!r||typeof r!=='object')return;
   addPosts('x',r.x);addPosts('ig',r.ig);addPosts('th',r.threads);
   for(const m of Array.isArray(r.line)?r.line:[]){
@@ -779,7 +807,7 @@ async function sendChat(t,keep){
   const rules=`你在互動小說裡扮演「${who}」，用手機訊息和玩家 ${S.player} 聊天。繁體中文、台灣語感。只寫 ${who} 傳出的訊息本身，一到三句，像真人傳訊息，不要旁白、引號或括號動作。玩家傳來的「［貼圖：…］」是一張貼圖；你偶爾也可以只回一張貼圖，整則訊息寫成「［貼圖：四字內的描述］」。言行符合世界書；關係是「${c.stage}」，熟悉程度要相稱。
 
 # 世界書
-${lore()}
+${loreFor(who+' '+S.loc+' '+h.slice(-6).map(m=>m.content).join(' ')+' '+S.log.slice(-2).map(x=>x.t).join(' '))}
 
 # 目前
 遊戲時間：${S.time}
@@ -787,7 +815,7 @@ ${lore()}
 最近的劇情：${recentLog().slice(-3000)||'（故事剛開始）'}`;
   let turns=h.slice(-20);while(turns.length&&turns[0].role!=='user')turns=turns.slice(1);
   try{
-    const text=await ask([{role:'user',content:rules},...turns],{onText:({text})=>{bub.textContent=text;box.scrollTop=box.scrollHeight}});
+    const text=await ask([{role:'user',content:rules},...turns],{lite:true,onText:({text})=>{bub.textContent=text;box.scrollTop=box.scrollHeight}});
     h.push({role:'assistant',content:text});note('玩家傳訊息給 '+who+'：'+t);note(who+' 回覆：'+text);S.chats[who]=h.slice(-60);save();if(cur==='chat'&&chatWith===who)renderChat();else S.lineUnread[who]=(S.lineUnread[who]||0)+1;
   }catch(e){h.pop();save();if(cur==='chat'&&chatWith===who){renderChat();if(!keep)$('c-text').value=t;$('bubbles').append(el('div','err',errText(e)))}}
   btn.disabled=false;
@@ -833,14 +861,14 @@ twoTap($('sc-del'),'刪除',()=>{S.scripts=S.scripts.filter(s=>s.id!==editId);if
 /* ---------- settings ---------- */
 function fillSettings(){
   $('set-name').value=S.player;$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-social').checked=!!S.opts.social;
-  $('api-on').checked=!!S.api.on;$('api-url').value=S.api.url;$('api-key').value=S.api.key;$('api-model').value=S.api.model;$('api-img').value=S.api.img||'';$('set-msg').textContent='';$('img-msg').textContent='';$('set-hue').value=S.opts.theme?S.opts.theme.h:346;renderThemes();
+  $('api-on').checked=!!S.api.on;$('api-url').value=S.api.url;$('api-key').value=S.api.key;$('api-model').value=S.api.model;$('api-model2').value=S.api.model2||'';$('set-lorefull').checked=!S.opts.loreFull;$('lore-info').textContent=loreStat?'上一次生成送出：'+loreStat:'';$('api-img').value=S.api.img||'';$('set-msg').textContent='';$('img-msg').textContent='';$('set-hue').value=S.opts.theme?S.opts.theme.h:346;renderThemes();
   $('api-note').textContent=IN_CLAUDE?'你現在是在 Claude 的頁面裡看這支手機，這裡對外的連線會被擋，所以自訂 API 在這裡連不到，會用 Claude 生成。把 index.html 放到自己的網站（例如 GitHub Pages）再打開，自訂 API 就能用。':'沒勾選時無法生成。接口需要允許網頁直接連線（CORS），大部分中轉站都可以。';
   const a=$('set-av');a.textContent='';a.style.backgroundImage=IMG.me?'url("'+IMG.me+'")':'';if(!IMG.me)a.textContent=[...S.player][0]||'我';
 }
 function readSettings(){
   S.player=$('set-name').value.trim()||'夏湘';S.opening=$('set-open').value.trim()||S.opening;S.lore=$('set-lore').value;
-  S.opts.sumEvery=Math.min(60,Math.max(3,parseInt($('set-sum').value,10)||15));S.opts.social=$('set-social').checked;
-  S.api={on:$('api-on').checked,url:$('api-url').value.trim(),key:$('api-key').value.trim(),model:$('api-model').value.trim(),img:$('api-img').value.trim()};save();
+  S.opts.sumEvery=Math.min(60,Math.max(3,parseInt($('set-sum').value,10)||15));S.opts.social=$('set-social').checked;S.opts.loreFull=!$('set-lorefull').checked;
+  S.api={on:$('api-on').checked,url:$('api-url').value.trim(),key:$('api-key').value.trim(),model:$('api-model').value.trim(),model2:$('api-model2').value.trim(),img:$('api-img').value.trim()};save();
 }
 $('set-save').onclick=()=>{readSettings();fillSettings();$('set-msg').textContent='已儲存'};
 $('api-test').onclick=async()=>{readSettings();const m=$('set-msg');m.textContent='測試中…';try{const t=await ask('請只回一個字：好');m.textContent='接通了，回覆：'+t.slice(0,20)}catch(e){m.textContent=errText(e)}};
