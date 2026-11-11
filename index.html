@@ -561,16 +561,17 @@ ${S.turn===0?'這是開局。'+(sc?'照模擬器指令開場；指令沒寫開�
 目前各社群最近貼文：${JSON.stringify(['x','ig','th'].flatMap(app=>S[app].slice(0,8).map(p=>({app,handle:p.handle,text:p.text,time:p.time}))))}
 以時間推進與最近發文記錄決定是否有新動態，避免連續重複、同一分鐘密集發文。沒有合理新貼文就給空陣列。只有真正公開發布的貼文才寫入 socialPosts；草稿、內心幻想、未送出的文字不能同步。
 匿名帳號只能使用公開顯示名稱與帳號，不洩漏真實身份。玩家角色不因 App 同步自動知道匿名帳號主人，也不會自動讀到每一篇貼文。每回合的社群貼文隨劇情同一次 API 回傳，不要另外生成一批城市動態。
+角色和玩家同場、沒空拿手機的時候不會當場發文，但 socialPosts 可以補上他稍早發、玩家還沒看過的貼文（time 填當時的時間，要早於現在，而且不能和最近貼文重複）。這種貼文不代表玩家已經讀到，除非玩家這回合有滑手機。
 三個 App 的文風不同，發在哪裡就照哪裡的風格寫：
 ・川訊｜${sty('x')}
 ・棲影｜${sty('ig')}
 ・川串｜${sty('th')}
 已經存在的帳號要沿用：${JSON.stringify(S.handles)}
-${S.contacts.length&&S.turn%2===1?'這一回合請讓 '+S.contacts[Math.floor(S.turn/2)%S.contacts.length].name+' 在幕後發一則貼文放進 socialPosts（用他自己的公開帳號，或劇本替他設定的小帳），內容出自他此刻的生活或心情，不必和玩家有關。':''}
+${S.contacts.length&&S.turn%2===1?'這一回合請讓 '+S.contacts[Math.floor(S.turn/2)%S.contacts.length].name+' 在幕後發一則貼文放進 socialPosts（用他自己的公開帳號，或劇本替他設定的小帳），內容出自他的生活或心情，不必和玩家有關。如果他這一回合一直和玩家待在一起、沒有機會拿手機，就改成他稍早發的一則（今天早上、昨晚、和玩家見面之前），time 填當時的時間。':''}
 
 # 輸出
 只回一個 JSON 物件，不要任何其他文字：
-{"story":"這回合的劇情","time":"推進後的遊戲時間，格式同 11月1日 星期日 09:38","location":"城市·地點","choices":[{"title":"八字內的行動","hint":"十字內的補充"}],"contacts":[{"name":"姓名","stage":"關係階段，如 初識","note":"十五字內，玩家目前對這個人的印象"}],"stats":{"player":[{"name":"數值名","value":"目前的值"}],"chars":[{"who":"角色名","items":[{"name":"數值名","value":"目前的值"}]}]},"changes":["本回合的數值變化，如 聞止水 好感 +2"],"photos":["一句照片描述"],"events":[{"date":"11月5日","title":"十二字內的事"}],"notice":"四十字內，這回合發生了什麼","socialPosts":[{"app":"x 或 ig 或 th","name":"公開顯示名稱","handle":"公開帳號（不含@）","text":"本回合實際發布的貼文正文","image":"若是棲影照片則填畫面描述，否則空字串"}]}
+{"story":"這回合的劇情","time":"推進後的遊戲時間，格式同 11月1日 星期日 09:38","location":"城市·地點","choices":[{"title":"八字內的行動","hint":"十字內的補充"}],"contacts":[{"name":"姓名","stage":"關係階段，如 初識","note":"十五字內，玩家目前對這個人的印象"}],"stats":{"player":[{"name":"數值名","value":"目前的值"}],"chars":[{"who":"角色名","items":[{"name":"數值名","value":"目前的值"}]}]},"changes":["本回合的數值變化，如 聞止水 好感 +2"],"photos":["一句照片描述"],"events":[{"date":"11月5日","title":"十二字內的事"}],"notice":"四十字內，這回合發生了什麼","socialPosts":[{"app":"x 或 ig 或 th","name":"公開顯示名稱","handle":"公開帳號（不含@）","text":"本回合實際發布的貼文正文","image":"若是棲影照片則填畫面描述，否則空字串","time":"發文時間，格式同遊戲時間；當下發的可省略，稍早發的填當時的時間"}]}
 socialPosts 收錄本回合已發布的貼文，以及角色在幕後自主發布、但不需要插入 story 正文的新貼文；無新貼文時給 []。不要強制每回合發文、不要重複最近的貼文。匿名小帳貼文只展示公開身份，玩家角色不能憑空知道背後是誰。
 photos 是這回合會留在玩家手機相簿裡的 0 到 2 張照片，寫成一句具體的畫面描述：玩家拍下的、別人傳來的，或眼前值得記住的一幕。
 events 是這回合劇情裡新約好、新得知、有明確日期的事（約定、展覽、截止日、活動）；沒有就給空陣列，行事曆上已有的不要重複。到了行事曆上的日子，劇情要記得這件事。
@@ -666,7 +667,7 @@ async function playTurn(action){
        const name=str(p.name,handle);(S.handles[name]||(S.handles[name]={}))[p.app]=handle;
        const exists=S[p.app].some(q=>q.storyTurn===S.turn&&q.handle===handle&&q.text===p.text.trim());
        if(exists)continue;
-       S[p.app].unshift({id:++uid,name,handle,text:p.text.trim(),image:str(p.image,''),time:S.time,likes:0,re:0,liked:false,storyTurn:S.turn});
+       S[p.app].unshift({id:++uid,name,handle,text:p.text.trim(),image:str(p.image,''),time:str(p.time,S.time),likes:0,re:0,liked:false,storyTurn:S.turn});
        S[p.app]=S[p.app].slice(0,100);
        if(!(cur==='feed'&&curFeed===p.app))S.unread[p.app]++;
      }
@@ -746,7 +747,7 @@ function addPosts(kind,list){
   for(const p of Array.isArray(list)?list:[]){
     const text=p&&str(p.text,str(p.caption,''));if(!text)continue;
     const nm=str(p.name,'棲川居民'),hd=(S.handles[nm]&&S.handles[nm][kind])||str(p.handle,'qichuan').replace(/^@/,'');(S.handles[nm]||(S.handles[nm]={}))[kind]=hd;const likes=3+Math.floor(Math.random()*(kind==='x'?400:60));
-    S[kind].unshift({id:++uid,name:nm,handle:hd,text,image:str(p.image,''),time:S.time,likes,re:Math.floor(Math.random()*(kind==='x'?40:9)),views:likes*(8+Math.floor(Math.random()*30)),replies:(Array.isArray(p.replies)?p.replies:[]).filter(r=>r&&str(r.text,'')).slice(0,3).map(r=>({name:str(r.name,'路人'),text:str(r.text,'')})),liked:false});n++;
+    S[kind].unshift({id:++uid,name:nm,handle:hd,text,image:str(p.image,''),time:str(p.time,S.time),likes,re:Math.floor(Math.random()*(kind==='x'?40:9)),views:likes*(8+Math.floor(Math.random()*30)),replies:(Array.isArray(p.replies)?p.replies:[]).filter(r=>r&&str(r.text,'')).slice(0,3).map(r=>({name:str(r.name,'路人'),text:str(r.text,'')})),liked:false});n++;
   }
   S[kind]=S[kind].slice(0,100);if(!(cur==='feed'&&curFeed===kind))S.unread[kind]+=n;return n;
 }
@@ -793,7 +794,8 @@ ${brief('th')}
 {"x":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文","image":"照片的一句文字描述或空字串"}],"ig":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文說明","image":"照片內容的一句文字描述"}],"threads":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文","replies":[{"name":"回覆者","text":"回覆內容"}]}],"line":[{"from":"玩家認識的人的姓名","text":"訊息"}]}
 x 給 2 到 3 則，ig 給 0 到 1 則，threads 給 1 到 2 則（每則附 1 到 2 個別人的回覆）。三個 App 的文風要明顯不同，各照上面寫的風格，同一件事不要在兩個 App 用同樣的口氣講。
 ${feat.length?'這次一定要讓 '+feat.join('、')+' 各發一則：選最適合他個性的 App，語氣和用詞照世界書裡他的條目；不愛用社群的人就發得短、冷淡，或只丟一張照片。劇本若替他設定了匿名小帳，就用那個小帳的公開名稱發，不洩漏本人身分。':''}其餘發文者是店家、居民、在地帳號或其他角色。
-已經存在的帳號要沿用，不要改名：${JSON.stringify(S.handles)}line 是認識的人主動傳給玩家的訊息，只有在劇情上說得通時才給一則，否則給空陣列；from 必須是「玩家認識的人」裡的名字。不要讓路人洩漏玩家的私下對話。`,{json:true,quick:true,lite:true});
+已經存在的帳號要沿用，不要改名：${JSON.stringify(S.handles)}
+每則貼文可以加 "time" 欄位（格式同遊戲時間）：此刻正和玩家待在一起的人沒空當場發文，他的貼文要寫成稍早發的，time 填當時的時間；其他人不填就是現在。line 是認識的人主動傳給玩家的訊息，只有在劇情上說得通時才給一則，否則給空陣列；from 必須是「玩家認識的人」裡的名字。不要讓路人洩漏玩家的私下對話。`,{json:true,quick:true,lite:true});
   if(!r||typeof r!=='object')return;
   addPosts('x',r.x);addPosts('ig',r.ig);addPosts('th',r.threads);
   for(const m of Array.isArray(r.line)?r.line:[]){
