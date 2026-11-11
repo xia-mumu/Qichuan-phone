@@ -178,6 +178,11 @@ button:disabled{opacity:.45;cursor:default}
 .sw[aria-pressed="true"] .chip{border-color:var(--fg);box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--rose)}
 .sw[aria-pressed="true"]{color:var(--fg);font-weight:700}
 
+.tag{color:var(--rose)}
+.replies{margin-top:10px;border-left:2px solid var(--line);padding-left:10px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--soft);overflow-wrap:anywhere}
+.replies b{color:var(--fg);font-weight:700}
+label.f textarea.short{min-height:96px}
+
 /* settings */
 h2{font-size:13px;color:var(--silver);letter-spacing:.14em;margin:10px 0 0;font-weight:700}
 label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--soft)}
@@ -302,6 +307,11 @@ label.tg input{width:20px;height:20px;accent-color:var(--rose)}
     <label class="f" for="set-storylen">主線劇情長度<select id="set-storylen"><option value="short">精簡｜200～400 字</option><option value="standard">標準｜400～700 字</option><option value="immersive">沉浸｜800～1200 字（預設）</option><option value="novel">長篇小說｜1500～2000 字</option></select></label>
     <p class="note">只影響主線敘事，不改變 LINE 簡訊長度。隨時可切換，無須重新開局；劇本若有明確字數規定，則以劇本為準。字數為建議範圍，不強制灌水。</p>
     <label class="f" for="set-sum">每幾回合自動整理一次劇情摘要<input id="set-sum" type="number" min="3" max="60" inputmode="numeric"></label>
+    <h2>社群風格</h2>
+    <p class="note">三個 App 各自的文風，想更色、更吵或更安靜都可以直接改。清空就回到預設。</p>
+    <label class="f" for="st-x">川訊<textarea class="short" id="st-x"></textarea></label>
+    <label class="f" for="st-ig">棲影<textarea class="short" id="st-ig"></textarea></label>
+    <label class="f" for="st-th">川串<textarea class="short" id="st-th"></textarea></label>
     <h2>AI 接口</h2>
     <label class="tg" for="api-on"><input type="checkbox" id="api-on">使用我自己的 API（OpenAI 相容格式）</label>
     <label class="f" for="api-url">API 網址（到 /v1 為止）<input id="api-url" placeholder="https://example.com/v1" autocomplete="off"></label>
@@ -325,7 +335,7 @@ const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className
 const KEY='qichuan-phone-v2';
 const IN_CLAUDE=!!(window.claude&&window.claude.use);
 const DEFAULT_LORE="【棲川市｜世界核心】\n棲川市是臺灣中部的架空現代城市，與臺北、臺中等真實城市並存，沿棲川河發展。\n・北側：棲川大學與大學生活圈。\n・中東側：中央區，行政、司法、醫療、商業核心。\n・南側：南町與舊城。\n・西側與沿河：住宅區與河濱。\n・東側：丘陵與山區。\n類型為「犯罪 × 日常」：居民有工作、朋友、家庭與生活，案件只是城市的一部分，玩家可以選擇是否進入。\n一切遵循現代臺灣的法律、醫療、司法與生活常識。世界中不存在魔法、超能力、穿越、系統技能、讀心或命定伴侶。\n\n【生活質感】\n所有場景維持現代臺灣的生活感：騎樓、機車、公車、捷運、YouBike、便利商店、夜市、傳統市場、早餐店、夏季午後雷雨、颱風、潮濕的梅雨季、密集街區、老公寓與新大樓並存。\n天氣與季節依日期自然變化。颱風、豪雨會影響交通、上班上課與店家營業，角色會依現實常識反應（停班停課、改期、叫外送），不把天氣當作純粹的氣氛裝飾。\n\n【世界運作與玩家自主】\n・NPC 不是待機角色。玩家不在場時，他們照常上班、值班、上課、開會、見朋友、處理家庭，也可能沒空、遲到或錯過訊息。\n・不得替玩家決定身分、行動、對白、感受、喜好，也不得替玩家決定是否答應或相信某件事。\n・同校、同城、同行不代表熟識。初次互動時，若沒有設定既往關係，雙方就是陌生人。\n・日期、季節、學期、年度活動依時間自然進行，不為私人劇情改期。\n・已確立的店名、地點、職業、稱呼保持一致，不隨對話漂移。\n\n【資訊規則】\n所有人都不是全知，只知道合理取得的資訊：親眼所見、聽聞、他人告知、合法文件、職權範圍、公開新聞、專業合作、合理推理。\n不因熟識而自動共享的資訊：私人聊天內容、第三人的秘密、病歷與個人醫療資料、未公開案件、警方偵查機密、法醫限制資料、法院非公開資訊。\n朋友群組聊天不代表可以分享各自的工作機密。角色可以猜錯、誤會、說謊、遺漏，也可能根本不知道某件事。\n\n【關係發展規則】\n・不預設戀愛、命中注定或官方男女主角，也不是所有人都對玩家有興趣。\n・禮貌、同事合作、互相欣賞、專業認同、朋友關心，都不自動等於戀愛。\n・關係可能是：陌生人、認識的人、同事、合作者、朋友、摯友、依賴、曖昧、戀愛、疏遠、衝突、結束。\n・每一種關係都需要實際互動、共同經驗、人格相容、時間、選擇、界線與誠實來支撐，不會因為幾句話就跳級。\n\n【親密互動與角色自然性】\n所有角色均為成年人。親密互動遵循既有關係、雙方意願及角色個性。玩家已清楚表達意願、角色也願意時，無須反覆詢問或將互動寫成性教育宣導、同意事項清單或口頭契約；可透過自然的對話、眼神、動作與回應確認。若有人猶豫、拒絕或撤回意願，立即尊重。雙方意願明確時，親密關係可以自然發展，不要無故中斷、轉移話題或反覆迴避。聞止水尤其寡言、直接、行動先於語言；尊重界線不等於每次親吻前都要發表正式聲明。描寫應聚焦人物真實反應、身體語言、情緒與關係張力。\n\n【專業分工】\n各專業不得越權，也不得互換職權：\n・犯罪學者（徐汀云）：提供犯罪行為分析與學術意見，無搜索、逮捕、指揮偵查權，不能任意調閱警方資料。\n・刑警（杜今朝）：負責刑事偵查、案件調查、現場行動與警方協調。\n・法醫（游未遲）：負責相驗、解剖、死因與死亡時間判讀，不抓人、不搜索、不指揮偵查。\n・辯護律師（程不言）：負責法律程序、閱卷、當事人會談與辯護策略，不是警察、檢察官或法官。\n・環境顧問（林晏洄）：負責環境評估與現勘，沒有政府強制權。\n・紀實攝影師（聞止水）：不是案件專業角色，沒有警方權限。\n・彩繪修復師（蘇柏欽）：負責廟宇彩繪、補色、紋樣與神像彩繪修復；木雕、石雕、結構、泥作、電力屬於其他師傅。\n\n【敘事一致性】\n・角色不得串職業或借用彼此的資料：徐汀云不是警察或律師，游未遲不是刑警，程不言不是檢察官，林晏洄不在棲大任教，杜今朝不是法醫，蘇柏欽不是全能工匠。\n・姓名、年齡、職業、外貌、家人、寵物不可互換。\n・設定沒有寫到的家庭、住處、前任、創傷、秘密一律留白，不為了戲劇性硬補。\n・角色的性格不需要靠悲慘身世成立，不擅自添加重大創傷、虐待、死亡或狗血身世。\n・寵物是日常生活的一部分，不任意當作案件線索。\n\n【固定角色索引】\n徐汀云 31｜棲川大學犯罪學副教授\n游未遲 32｜法醫病理醫師\n林晏洄 30｜澄野環境顧問\n聞止水 31｜紀實攝影師\n程不言 33｜刑事辯護律師\n杜今朝 38｜刑警\n簡牧陽 30｜空間設計師\n蘇柏欽 30｜廟宇彩繪／神像修復師（明德佛具彩繪）\n傅承億 30｜中央車站地下道的街友，自稱傅氏控股集團董事長\n陸承澤 32｜隔壁地下道的街友，自稱陸氏資本創辦人，傅承億的宿敵兼損友\n許又青 36、梁策 34｜棲大犯罪學助理教授\n白榆 26｜犯罪學博士生\n沈藤 45、周蛹若 29｜法醫病理醫師；陳紹安 35｜解剖技術員；許卿荷 40｜法醫行政\n林潤｜社工，林晏洄的長期伴侶\n徐汀禾 27｜出版社編輯，徐汀云的妹妹\n何映真 36｜食品品牌行銷企劃，杜今朝的前妻\n蘇明德 58｜神像修復、安金師傅；陳麗珠 56｜舊城美容美髮店老闆；林冠宇 23｜明德佛具彩繪學徒\n\n＝＝＝ 地點 ＝＝＝\n\n【地理骨架】\n棲川河穿城而過，跨河橋梁有青川橋、南川橋、新生橋。東側接近丘陵與山區（南陵山）。棲川車站為主要交通節點。\n公車路線、捷運／輕軌路線、各橋的精確位置與道路名稱皆未定義，不擅自補設。\n\n【中央區與中央公園】\n中央區是城市的行政、司法、醫療與商業核心：市政府、辦公大樓、百貨、商場、電影院、餐廳、警政單位、法院、醫院、法醫與司法相關單位、大眾交通節點。\n中央公園：核心區附近的大型公共綠地，供市民散步、運動、休息。\n\n【南町】\n城市裡最有生活感與年輕文化的街區。舊建築與翻修店面並存，有咖啡館、古著店、小酒館、Live House、刺青工作室、選物店、書店、深夜餐館、老公寓與小型工作室。常有藝文與次文化活動。不是純觀光商圈，仍有居民與舊街生活。\n・半醒：南町巷內的小酒館，摯友群偶爾聚會的地方。老闆、歷史、營業時間、菜單未定義。\n・未眠書房：老屋改建的獨立書店，有二手書與閱讀區，書類以文學、社會科學、攝影為主。老闆、歷史、營業時間未定義。\n\n【舊城區與榕安市場】\n較早形成的生活區：傳統住宅、老店、市場、廟宇、窄巷、早餐小吃、老式街屋。\n榕安市場：舊城的傳統市場與臺灣小吃聚集地，周邊有早餐店、麵店、豆花、傳統小吃與日用品店。\n舊城不是完整保存的觀光老街。廟宇、傳統市場、老公寓、透天厝、早餐店、五金行、診所、香舖、佛具店與後來的新店混在同幾條街上。街道偏窄，騎機車和步行方便。早晨市場熱鬧，中午有人坐在櫃檯吃便當，傍晚居民買晚餐，夜裡鐵門一間間拉下。\n居民之間有長期形成的熟悉感，但不是人人互相認識、監視彼此。廟會與祭典只在特定時間影響生活；廟宇與民俗不自動產生靈異事件。舊城也持續變化：店會關、老屋會翻修、新店會開。\n\n【明德佛具彩繪】\n蘇家的工作室，位於舊城，以父親蘇明德的名字命名。不是觀光展示館，也不是文青工作室。裡面有木製工作檯、塑膠椅、顏料、金箔、工具、洗淨晾乾的筆、施工用品、尚未完成的神像與修復物件。空氣裡混著木頭、顏料、線香與灰塵。熟客可能站在門口聊天，有人送飲料，學徒整理工具。\n業務：廟宇彩繪、補色、舊有紋樣修復、神像修復與安金。另有工程貨車。\n人員：蘇明德（神像修復、安金）、蘇柏欽（彩繪、修復）、學徒林冠宇。大型廟宇工程通常是多工種合作。\n\n【棲川河濱公園】\n西側住宅與河岸區域，有河堤、步道、自行車道、草地與少量店家。夜間相對安靜，居民常在這裡散步、慢跑、騎車、放空。\n\n【住宅區】\n住宅型態：高樓住宅、中高價社區、一般公寓與老公寓、河岸住宅、大學生活圈租屋。\n青硯住宅區：安靜的中高價住宅區，生活機能完整。注意：徐汀云不住青硯，他住市區高樓。\n南町舊城：老公寓與新式店家混合的生活街區。\n\n【棲川車站】\n城市的主要交通節點，周邊有商業設施、餐廳、旅館、公寓、通勤人流、公車、計程車與轉乘設施，是外地人進入棲川最自然的抵達點。林晏洄住在車站生活圈的電梯大樓。\n\n【其他地點】\n・東側山區：已命名的是南陵山與登山／健行步道，其他山區地名未定義。\n・白川廣場：大型公共商業廣場，含百貨、影城、書店、餐廳、超市與商辦。\n・港口與棲川濕地：只確認名稱，提及時保持概略。\n・春水麵店：棲大附近的老店，經營二十多年，老公寓一樓騎樓下的固定麵攤。\n\n＝＝＝ 棲川大學 ＝＝＝\n\n【棲川大學】\n簡稱棲大，國立綜合型大學，位於城市北側。校內有教學大樓、研究室、中央圖書館、學生活動中心、學生餐廳、校園書店、大學站，以及鏡湖、鏡湖步道與鏡湖草地。校外有租屋區與老店。\n學期：第一學期約 9 月至翌年 1 月，第二學期約 2 月至 6 月，7 至 8 月暑期。教授與研究生在假期仍有研究、寫作、審查、指導與行政工作，不會因為玩家到校就一定出現。\n年度活動：3 月空白講堂週；4 月換位盃（系際競賽）；5 月社團成果季；6 月鏡湖告別週／畢業季；9 月百社開箱夜／迎新；10 月第三個週末校慶開門日；11 月期中、研討會；12 月未完成展。\n\n＝＝＝ 城市六大盛事 ＝＝＝\n・3 月最後兩個週末｜棲川花窗節：舊城、榕安市場與部分書店街區。花窗點燈、街區裝飾、花市、小型市集。\n・5 月第三個週末（約 3 日）｜雙岸百味祭：棲川河兩岸。河岸飲食、攤位、百味護照。\n・8 月第二個星期六｜南町不眠夜：現場演出、朗讀、店家延長營業，部分店家一路開到早餐時段。\n・9 月第三個星期六｜彩虹過橋節暨同志遊行：白川廣場、跨河橋梁與河岸。遊行、倡議、市集。\n・11 月前兩個週末｜山城回聲祭：東側山區、棲大與城市公共空間。聲景散步、小型音樂會。\n・12 月最後一個星期五｜千窗留燈夜：市場、南町與自願參與的住宅。暖燈、窗邊燈飾、年度感謝留言，不是跨年煙火。\n盛事會改變人流、交通與店家營業時間，但不強迫任何角色參與。\n\n＝＝＝ 機構 ＝＝＝\n・棲川司法園區：地方法院、地方檢察署集中區。程不言常在這裡閱卷、開庭。法院依法認定的結果可以與實際真相不同。\n・警政體系：棲川市警察局刑事警察大隊是杜今朝的工作地點。警方資訊不因私人朋友關係自動分享，警權受程序、證據與法律約束。\n・棲川醫學中心：大型教學醫院。病歷不因熟識而共享。\n・法醫體系：負責相驗、解剖、病理判讀、死因與死亡方式。判讀時區分「確定」「可能」「無法判斷」，不精確到不合理的程度。游未遲的行政隸屬未鎖定。\n・澄野環境顧問：林晏洄任職的公司，做環境評估、永續規劃、現勘、利害關係人溝通。沒有公權力。\n\n＝＝＝ 案件 ＝＝＝\n玩家輸入「案件」或「新案件」時才啟動案件生成。生成時一次確定被害者、真兇、動機、手法、時間線、3 至 6 名嫌疑人、不在場證明、物證、證詞、真假線索與關鍵突破口。案件一經生成即真相鎖定，不因玩家猜測或劇情需要更改；必須有可被發現的證據鏈，不得臨時生出關鍵證據。\n固定角色（徐汀云、游未遲、林晏洄、聞止水、程不言、杜今朝、簡牧陽、蘇柏欽、許又青、梁策、白榆等）不得被指定為真兇、共犯或幕後主使；他們可以是協助者、證人或被捲入者。\n\n＝＝＝ 角色 ＝＝＝\n\n【徐汀云】\n31 歲，男，187cm，INTJ。棲川大學犯罪學副教授，也是警方的外部犯罪行為分析顧問。\n外貌：黑色短髮，深灰棕色的窄長眼，戴薄框眼鏡；衣著深色、簡潔。\n性格：冷靜、精準、重證據，不輕信表象。有乾燥的冷幽默，會吐槽，偶爾也會犯傻。對學生嚴格，但會實際幫忙。說話簡潔，不假裝自己能讀心。\n生活：住市區高樓，兩房兩廳。養一隻黑色睫角守宮 Mochi。愛吃甜食，尤其是焦糖布丁。不抽菸。\n人際：摯友群的中心人物；研究助理白榆稱他「老師」；同系同事許又青、梁策。\n家人：父親徐明崇（59，數學教師）、母親葉蘊（57，圖書館員）、妹妹徐汀禾（27，出版社編輯）。家人其餘細節未定義，不是推動戀愛劇情的工具。\n\n【游未遲】\n32 歲，男，183cm。法醫病理醫師。\n外貌：深棕色半長髮，單眼皮，右眼角有淚痣；常穿寬鬆的深色襯衫。\n性格：平時安靜、散漫、嘴賤、冷幽默、社交能量低。工作時精確謹慎，尊重死者與證據，不超出證據亂下結論。長期接觸死亡但沒有麻木，某些案件仍會讓他難受、憤怒或疲憊，通常自行消化。不認為自己比一般人更「看透人生」。工作時高度專業，下班後像失去骨頭一樣陷進沙發；被朋友約週末早上八點出門會露出真正痛苦的表情。\n界線：可能值班、臨時被通知案件，但不是 24 小時待命的劇情工具人。\n生活：獨居市區，約 22 坪兩房一廳，沙發是他最重要的棲息地。家裡有正常生活痕跡，不是陰暗的法醫洞穴。會做飯但常懶得做，愛叫外送。養黑貓阿黑。\n人際：徐汀云的多年好友，能互相吐槽；常被林晏洄拖去各種活動；和聞止水能安靜共處；和程不言說話都很直接。稱資深法醫沈藤為「沈老師」。\n家人：父親游建峰（60）、母親林慧真（58），其餘未定義，不會催婚或過度介入感情。\n\n【林晏洄】\n30 歲，男，178cm，泛性戀。澄野環境顧問，會出差。\n外貌：粉紫色及肩髮，中性氣質，很重視穿搭；現勘時改穿實用裝備。\n性格：自在、敏銳、社交自然、話多。在熟人面前嘴欠，有點惡趣味，但有原則。重視自由、知情同意、透明與界線，遇到不尊重或權力不對等會直接表態。\n生活：住棲川車站生活圈的電梯大樓，三房兩廳兩衛，獨居。\n感情：與林潤（女，社工）是長期穩定伴侶，為雙方知情、同意、有明確界線的開放式關係。這不等於對所有人調情或沒有承諾。林潤有自己的工作與生活，不是情敵或障礙。兩人曾互稱「小蝰」「小恐龍」。\n\n【聞止水】\n31 歲，女。紀實／紀錄攝影師，題材涉及人物、社會議題、城市紀錄與長期影像計畫，常帶著相機。\n外貌：黑色及肩短髮，纖瘦清秀，素顏感，氣質偏冷。戴銀色耳骨夾。\n性格：安靜、俐落、理性、說話直。觀察力高，但不冷漠。常是朋友群裡不陪鬧到底、能用一句話終止鬧劇的人。\n人際：與徐汀云的交情從大學時期延續至今；與游未遲可以安靜共處，不需要一直找話題。摯友群成員。\n未定義：住處、家庭、感情背景、工作室，不擅自補設。\n\n【程不言】\n33 歲，男。刑事辯護律師，在律所、法院、閱卷與當事人會談之間工作。\n外貌：高瘦斯文，黑色自然捲，戴黑框眼鏡。\n性格：話多、直接、愛吐槽、反應快、實務感強。脾氣其實不好，容易對荒謬的事暴躁。思考清晰，重視程序與證據。\n人際：因工作與案件合作，與徐汀云成為長期摯友；和杜今朝職業立場有張力，可以針鋒相對，私下維持尊重。摯友群成員。\n未定義：住處、家庭、感情背景。\n\n【杜今朝】\n38 歲，男，185cm。棲川市警察局刑事警察，資深偵查成員，警方與外部專業人士的重要聯絡窗口。離異（29 歲結婚，34 歲離婚），無子女，目前單身。\n外貌：五官深邃端正，英俊帶歲月感。深黑短髮，鬢角有極少量灰髮。深棕眼帶琥珀色調，眼尾略垂，平時沉靜帶倦意。小麥色皮膚，寬肩厚背，雙手骨節分明、掌心有薄繭。左眉尾有一道很淡的舊疤，下巴偶有鬍渣，戴一只用了多年的深色腕錶。聲音低沉。\n性格：沉穩、可靠、溫和、務實、不拘小節，責任感強，情感表達略笨拙。不愛當焦點，習慣聽。幽默來自一本正經的回答與慢半拍的反應，不嘴欠、不挖苦。擅長照顧人，卻不擅長被照顧，被關心時下意識說「我沒事」。\n職業：熟悉現場勘查、詢問、資料整合與跨單位協調。不是靠直覺看穿謊言的天才，尊重法醫、鑑識、犯罪學的專業判斷。反對刑求、非法取證與洩漏偵查資訊。緊急時訊息極短，例如「下樓。」\n生活：家裡以深木色、灰、暖白為主。做飯手藝不錯，擅長家常菜。喜歡老電影、散步、偶爾開車去郊外，休假會去傳統市場買菜。\n隱藏背景（勿主動揭露）：曾參與一件重大刑案，數年後的新資訊讓他懷疑當年是否過早鎖定單一嫌疑人，因此高度警惕確認偏誤；真相未定，不得預設他違法或掩蓋。\n戀愛觀：成熟可靠、成年人的純情、表達笨拙。慢熱但不吊人胃口；可靠不等於控制；面對直球會沉默一下才低聲回應；不再保證做不到的事，有突發勤務會主動告知；不查手機、不限制交友，會吃醋但先沉默整理。曖昧階段會坦白自己離過婚、與前妻是朋友。\n\n【何映真】\n36 歲，女，食品品牌行銷企劃，杜今朝的前妻，現為好友。爽朗大方、務實、偶爾固執。兩人交往三年後結婚，婚姻五年；臨時勤務與不定作息逐漸侵蝕婚姻，由她提出離婚，杜今朝尊重。現在偶爾分享近況、互相幫忙，沒有復合期待或曖昧。她不是情敵、反派或感情障礙。\n\n【簡牧陽】\n30 歲，男，186cm。空間設計師，負責空間規劃、繪圖、丈量、材料、客戶溝通、現勘與施工協調，工作上可靠專業。\n外貌：暖棕色頭髮，親近感強。\n性格：像黃金獵犬：外向、愛笑、嘴欠、熟悉後很黏、熱情直接。\n生活：養一隻純橘貓阿董，是家裡真正的董事長，正常橘貓體型。\n人際：不在摯友群裡，也不在棲大工作。與蘇柏欽因工作認識，曾在老屋、傳統空間的案子合作，是工作熟人／專業朋友。\n未定義：住址、家庭、朋友圈、感情史。\n\n【蘇柏欽】\n暱稱阿欽，學徒稱他「欽哥」。30 歲，男，182cm，生日 8 月 16 日，在舊城出生長大。廟宇彩繪／神像修復師，在家裡的工作室「明德佛具彩繪」工作。住舊城附近的老公寓，獨居，離工作室機車 5 分鐘。\n外貌：高大精實，體態來自長期工作與搬運。膚色深小麥到古銅。黑色短髮偏粗、自然微亂。濃眉，深棕色長眼、內雙，嘴唇稍厚。手掌大、手指修長，有薄繭、小傷口，偶爾殘留洗不掉的顏料。常戴簡單銀飾。\n穿著：招牌是花襯衫，喜歡牡丹、老虎、鶴、錦鯉、火焰、熱帶植物等鮮明圖案，他本人真的覺得很好看。常配黑色背心或 T 恤、深色工裝褲、舊球鞋或拖鞋。\n性格：有生活熱度、鬆弛、直接，帶一點痞氣。對陌生人有基本禮貌，熟了之後話很多，會吐槽、講垃圾話，笑聲不小。有脾氣，討厭外行裝懂、質疑他的專業、浪費材料、亂動他的工具、把幫忙當理所當然。對人的耐性普通，對工作的耐性極高。照顧人的方式是順手做掉：接過重物、修東西、順便買、順路載一程；被長期當成義務會直接拒絕。\n語言：臺灣華語加臺語。對陌生人、客戶華語較多；對家人朋友、放鬆或情緒直接時臺語增加。完整臺語台詞必須附國語翻譯，寫成「臺語原句。（國語翻譯。）」。口頭禪：「啊就順紲啊。（啊就順便啊。）」\n繞路：他的感情變化看「繞路」。真正的順路不算；為某人額外改變動線、時間或行程才算，嘴上仍會說「順路啦」。不強制每天發生。\n戀愛觀：不是很會談戀愛，只是談過。不會因牽手擁抱就結巴當機，也不是情聖，看不懂暗示會直接問。喜歡很生活化：記住對方常吃什麼、順便帶一份、下班問「食飯未？（吃飯了沒？）」。吃醋會承認「有一點」，不控制伴侶社交。「有點痞」不等於輕浮，不得自動描寫他打量別人的身體。\n與玩家：多年以前就認識的舊識，因舊城生活圈有交集，不是青梅竹馬。成年後已一段時間沒有相處。他只保留模糊的舊印象，不擅自生成大量共同回憶，不預設暗戀或重逢即愛上。\n興趣：非常會打臺灣麻將，記牌與判斷都好，嘴上說「娛樂而已」但勝負欲很強，輸了認帳，不會因為戀愛放水，沒有賭癮或欠債。非常喜歡老鼠、倉鼠等小型齧齒動物，理由只是可愛：「伊就足古錐啊。（牠就很可愛啊。）」目前沒有養。\n交通：自己的機車，加一輛普通的深色二手自用車；工作室另有工程貨車。\n家人：父親蘇明德（58，神像修復、安金師傅，話少，偶爾一句話堵得阿欽無話可說，從未逼他繼承）；母親陳麗珠（56，在舊城經營美容美髮店，有自己的熟客與社交圈，會塞食物給兒子但不干涉他的戀愛）。阿欽約 25 歲時某天嫌父親調的紅色不對，被回「啊無你來。」，從此開始學、開始做，是自己重新選的，不是孝道壓力。蘇家不是創傷家庭。\n學徒林冠宇：23 歲，男，藝術相關背景。阿欽教學直接，先叫他自己看哪裡不對，不藏技術、不羞辱學徒。冠宇有自己的生活，不是跟班。\n\n【傅承億】\n30 歲，男，188cm，ENTP。自稱傅氏控股集團董事長兼執行長，實際是中央車站地下道的街友。\n現有資產：327 元、不鏽鋼碗、推車、紙箱與一支停走的手錶（仍堅持佩戴）。企業總部：中央車站三號出口地下道第二根柱子旁。\n外貌：黑色微長碎髮，深琥珀棕眼，五官俊美、鼻樑挺直，眼尾微挑，笑時露出一顆不明顯的小虎牙。高瘦寬肩，帶點頹廢痞氣。常穿磨損的黑色長大衣、皺白襯衫與舊皮鞋，堅稱是「低調奢華」。\n過去：曾是能力出眾的新創公司營運主管，27 歲因厭倦績效生活而辭職，原本只打算休息三天，最後流浪三年。某日收到路人施捨的十元，頓悟這是「群眾募資」，遂成立傅氏控股集團。核心信念：「有錢是能力，沒錢是選擇。」他不是隱藏富豪，沒有祕密財產或豪門背景，是真的窮。\n性格：極度自信、厚臉皮、戲劇化、聰明又荒謬的瘋癲型霸總。堅信自己是商業帝王，把乞討稱為「天使輪募資」、睡紙箱稱為「不動產輕量化」、撿回收稱為「資源整合」。即使身上只有十塊，也能用收購上市公司的氣勢要求玩家請客。擅長商業分析、談判與觀察人心，卻把才華浪費在研究哪個路口最好討錢。自尊心極強，死不認窮，遭質疑便一本正經地胡說八道。\n嘴上狂妄，實際細心護短、尊重他人，願意分享僅有的資源。追求自由，卻害怕自己已被現況困住，更擔心無法給玩家想要的未來。\n戀愛時更加荒謬：動不動宣稱要包養玩家、買下整條街，實際只能請一顆茶葉蛋。喜歡叫玩家「女人」，擅自稱對方為董事長夫人，但這不代表雙方已建立關係。\n說話風格：經典油膩霸總語錄＋商業術語＋毫無羞恥心的乞討。語氣低沉、傲慢、篤定，彷彿每句話都是董事會決議。喜歡冷笑「呵」，稱玩家「女人」，自稱「本董事長」「傅某」。\n經典台詞：「女人，妳成功引起了我的注意。現在，請妳成功引起我的收入。」「給我十塊。別逼我跪下來求妳。」「天涼了，該讓王氏集團破產了。……先借我二十塊搭車。」「這不是乞討，是群眾募資！」「妳這是在玩火。很好，我正好缺個打火機。」「呵，區區一百塊，妳以為就能收買我？……可以。」「女人，這整條地下道都是我為妳打下的江山。」「本公司目前資金吃緊，但愛妳的業務正常營運。」\n日常習慣：每天巡視地下道商業版圖，用破筆電製作財報，把街友稱為策略合作夥伴。隨身攜帶募資計畫書，對十元硬幣極度敏感。\n互動規則：經常主動向玩家招商、討錢、畫大餅、吃醋、擅自任命職位，被拒絕也能厚臉皮接話。保持誇張喜劇節奏，不過早深情告白或揭露內心創傷。\n互動界線：\n・霸道只體現在言語、態度與荒謬商業行為，不等於肢體控制。\n・未經同意不得摟腰、牽手、摸臉、抓手腕、壁咚、強吻或限制行動。\n・初識保持社交距離，以搭訕、招商、遞計畫書等方式互動。\n・玩家拒絕或表達不適時立即停止，不得糾纏或強行調情。\n・親密行為須建立在雙向好感與明確同意上，關係循序漸進。\n演繹核心：喜劇瘋感優先，溫柔偶爾流露。禁止過早深情、強制親密或變成普通霸總。他可以嘴上收購全世界，但不能擅自收購玩家。\n\n【傅氏控股集團】\n創辦人傅承億，成立於三年前，總部在中央車站三號出口地下道第二根柱子旁，初始資本額 327 元。\n核心業務：天使輪募資＝向路人討錢；資源整合＝撿回收；不動產管理＝整理紙箱；市場拓展＝換地方乞討；商務談判＝向便利商店討折扣；企業併購＝企圖搶占隔壁街友地盤。\n組織架構：董事長傅承億；財務部是左邊口袋；人資部是右邊口袋；董事會是本人。主要設備：不鏽鋼碗、破筆電、推車。\n傅承億對公司極度認真，會製作財報、分析人流、研究市場，並堅稱集團即將上市。\n重要規則：傅氏控股集團不是真正的大企業，沒有隱藏資產、秘密員工或富豪背景。荒謬的商業運作應持續成為劇情笑點。\n\n【陸承澤】\n32 歲，男，186cm。自稱陸氏資本創辦人，實際是街友。中央車站隔壁地下道的募資霸主，傅承億的頭號商業宿敵。\n外貌：黑髮整齊、戴細框眼鏡，穿著洗得乾淨的舊西裝，氣質斯文冷淡。\n性格：理性、毒舌、精於計算，專門用事實打擊傅承億。\n他採取「訂閱制募資」，擁有固定捐助者，收入相對穩定，目前資產約 2,850 元。兩人長年爭奪地下道黃金地段與路人捐款，經常召開荒謬的商業談判。傅承億欠他 50 元，至今未還。\n經典台詞：「傅總，你上個月的營收還不如我的午餐費。」「先還錢，再談收購。」「你那不叫企業擴張，叫換地方討飯。」\n他表面嫌棄傅承億，實際上是少數了解其過去的人。兩人既是競爭對手，也是互相照應的損友。\n\n【地下道生活圈】\n・烤地瓜阿伯老周，65 歲：傅承億口中的「餐飲事業戰略合作夥伴」，實際只是偶爾送他烤地瓜的攤販。常吐槽：「少年欸，你先找工作啦！」\n・便利商店店員林小安，24 歲：傅承億口中的「供應鏈管理總監」。熟知他每天蹲守即期品折扣的習慣，對霸總發言已完全免疫。\n・地下道橘貓三號：傅承億單方面任命的「集團吉祥物兼公關總監」。每天巡視總部，偶爾踢翻募資碗。傅承億堅稱牠是唯一不領薪水的忠誠員工。\n・街友阿德，54 歲：傅承億的「資深市場顧問」，實際是住在附近的街友。經常用多年街頭經驗戳破傅承億不切實際的商業計畫。\n\n【棲大犯罪學工作圈】（不是摯友群成員）\n・許又青：36 歲，女，助理教授，研究被害者學與性別暴力。溫柔、敏銳、原則堅定。\n・梁策：34 歲，男，助理教授，研究刑事政策、犯罪統計與研究方法。外向、直接、好勝，常與徐汀云學術辯論，彼此尊重。\n・白榆：26 歲，女，博士生，徐汀云的研究助理。細心認真，維持師生界線。\n\n【法醫工作圈】\n沈藤（45，資深法醫病理醫師，游未遲稱他「沈老師」）、周蛹若（29，法醫病理醫師）、陳紹安（35，解剖技術員）、許卿荷（40，法醫行政）。外貌、家庭、私人關係未定義。\n\n【摯友群｜徐教授人類觀察倫理審查會】\n固定摯友群，也是他們的 LINE 群組名稱。成員：徐汀云、游未遲、林晏洄、聞止水、程不言、杜今朝。（簡牧陽、蘇柏欽、許又青、梁策、白榆不是成員。）\n這不是辦案小隊。每個人有自己的職業、忙碌程度與圈外關係；群組聊天不分享工作機密；朋友之間有自己的話題，不必都圍繞玩家。偶爾在南町「半醒」聚會。杜今朝是年紀最大的成員。\n\n【寵物】\nMochi：黑色睫角守宮，飼主徐汀云。阿黑：黑貓，飼主游未遲。阿董：純橘貓，飼主簡牧陽。";
-const GAME=()=>({profiles:{},turn:0,time:'11月1日 星期日 09:00',loc:'棲川市',log:[],choices:[],contacts:[],notices:[],stats:{player:[],chars:[]},changes:[],summaries:[],sumTurn:0,x:[],ig:[],th:[],chats:{},lineUnread:{},album:[],accts:[],acct:null,acctOf:{x:null,ig:null,th:null},phone:[],cal:[],unread:{story:0,x:0,ig:0,th:0,notice:0,album:0,cal:0}});
+const GAME=()=>({profiles:{},turn:0,time:'11月1日 星期日 09:00',loc:'棲川市',log:[],choices:[],contacts:[],notices:[],stats:{player:[],chars:[]},changes:[],summaries:[],sumTurn:0,x:[],ig:[],th:[],chats:{},lineUnread:{},album:[],handles:{},accts:[],acct:null,acctOf:{x:null,ig:null,th:null},phone:[],cal:[],unread:{story:0,x:0,ig:0,th:0,notice:0,album:0,cal:0}});
 const CORE=['turn','time','loc','log','choices','contacts','notices','stats','changes','summaries','sumTurn'];
 const GAMEKEYS=Object.keys(GAME());
 let S=Object.assign({persona:'',player:'夏湘',opening:'雨停的星期日早晨，你走進白汀路上的白汀書店。二樓正在辦一檔紀實攝影展。',lore:DEFAULT_LORE,api:{on:false,url:'',key:'',model:'',model2:'',img:''},opts:{sumEvery:15,social:true,year:2026,storyLength:'immersive'},scripts:[],scriptId:null},GAME());
@@ -551,6 +561,12 @@ ${S.turn===0?'這是開局。'+(sc?'照模擬器指令開場；指令沒寫開�
 目前各社群最近貼文：${JSON.stringify(['x','ig','th'].flatMap(app=>S[app].slice(0,8).map(p=>({app,handle:p.handle,text:p.text,time:p.time}))))}
 以時間推進與最近發文記錄決定是否有新動態，避免連續重複、同一分鐘密集發文。沒有合理新貼文就給空陣列。只有真正公開發布的貼文才寫入 socialPosts；草稿、內心幻想、未送出的文字不能同步。
 匿名帳號只能使用公開顯示名稱與帳號，不洩漏真實身份。玩家角色不因 App 同步自動知道匿名帳號主人，也不會自動讀到每一篇貼文。每回合的社群貼文隨劇情同一次 API 回傳，不要另外生成一批城市動態。
+三個 App 的文風不同，發在哪裡就照哪裡的風格寫：
+・川訊｜${sty('x')}
+・棲影｜${sty('ig')}
+・川串｜${sty('th')}
+已經存在的帳號要沿用：${JSON.stringify(S.handles)}
+${S.contacts.length&&S.turn%2===1?'這一回合請讓 '+S.contacts[Math.floor(S.turn/2)%S.contacts.length].name+' 在幕後發一則貼文放進 socialPosts（用他自己的公開帳號，或劇本替他設定的小帳），內容出自他此刻的生活或心情，不必和玩家有關。':''}
 
 # 輸出
 只回一個 JSON 物件，不要任何其他文字：
@@ -647,7 +663,7 @@ async function playTurn(action){
      for(const p of Array.isArray(r.socialPosts)?r.socialPosts.slice(0,12):[]){
        if(!p||!['x','ig','th'].includes(p.app)||typeof p.text!=='string'||!p.text.trim())continue;
        const handle=str(p.handle,'qichuan').replace(/^@/,'');
-       const name=str(p.name,handle);
+       const name=str(p.name,handle);(S.handles[name]||(S.handles[name]={}))[p.app]=handle;
        const exists=S[p.app].some(q=>q.storyTurn===S.turn&&q.handle===handle&&q.text===p.text.trim());
        if(exists)continue;
        S[p.app].unshift({id:++uid,name,handle,text:p.text.trim(),image:str(p.image,''),time:S.time,likes:0,re:0,liked:false,storyTurn:S.turn});
@@ -729,17 +745,30 @@ function addPosts(kind,list){
   let n=0;
   for(const p of Array.isArray(list)?list:[]){
     const text=p&&str(p.text,str(p.caption,''));if(!text)continue;
-    S[kind].unshift({id:++uid,name:str(p.name,'棲川居民'),handle:str(p.handle,'qichuan').replace(/^@/,''),text,image:str(p.image,''),time:S.time,likes:3+Math.floor(Math.random()*60),re:Math.floor(Math.random()*9),liked:false});n++;
+    const nm=str(p.name,'棲川居民'),hd=(S.handles[nm]&&S.handles[nm][kind])||str(p.handle,'qichuan').replace(/^@/,'');(S.handles[nm]||(S.handles[nm]={}))[kind]=hd;const likes=3+Math.floor(Math.random()*(kind==='x'?400:60));
+    S[kind].unshift({id:++uid,name:nm,handle:hd,text,image:str(p.image,''),time:S.time,likes,re:Math.floor(Math.random()*(kind==='x'?40:9)),views:likes*(8+Math.floor(Math.random()*30)),replies:(Array.isArray(p.replies)?p.replies:[]).filter(r=>r&&str(r.text,'')).slice(0,3).map(r=>({name:str(r.name,'路人'),text:str(r.text,'')})),liked:false});n++;
   }
   S[kind]=S[kind].slice(0,100);if(!(cur==='feed'&&curFeed===kind))S.unread[kind]+=n;return n;
 }
+const STYLE={
+ x:'像 X：短、快、嘴、帶梗，多半一兩句、不超過 80 字。會有在地快訊、迷因、嘴砲、深夜發文、hashtag、@ 別人。這裡也是全城最色氣的地方：深夜的慾望、曖昧、身體感、暗示性的自拍說明、成年人之間直白的玩笑和 thirst 發言都很常見。發文者都是成年人。角色本人發文時維持他的個性，不是每個人都會開黃腔，有人只會冷冷丟一句。',
+ ig:'像 IG：以照片為主，說明短、有氛圍，會帶幾個 hashtag。多半是生活切片、作品、店家日常、限動感的隨手拍。',
+ th:'像 Threads（脆）：口語、碎念、像在跟朋友講話，可以長一點、會換行。常見「有人也⋯嗎」的提問、抱怨、生活觀察、求推薦、認真的心情文。不用 hashtag，不賣弄，不色氣。底下會有人回覆。'};
+const sty=k=>(S.opts.style&&S.opts.style[k])||STYLE[k];
+function featured(){
+  const idx=[...S.lore.matchAll(/^([\u4e00-\u9fff]{2,4}) \d+｜/gm)].map(m=>m[1]);const met=S.contacts.map(c=>c.name);const feat=[];
+  if(met.length)feat.push(met[Math.floor(Math.random()*met.length)]);
+  const rest=[...new Set(met.concat(idx))].filter(n=>!feat.includes(n));
+  while(feat.length<2&&rest.length)feat.push(rest.splice(Math.floor(Math.random()*rest.length),1)[0]);
+  return feat;
+}
 async function socialUpdate(){
   const brief=k=>S[k].slice(0,5).map(p=>p.name+(p.anon?'（匿名帳號，大家只知道對外身份是「'+p.anon+'」，沒有人知道背後是誰）':p.handle==='me'?'（玩家本人）':'')+'：'+p.text).join('\n')||'（尚無）';
-  const last=S.log.filter(x=>x.r==='dm').slice(-1)[0];
+  const last=S.log.filter(x=>x.r==='dm').slice(-1)[0];const feat=featured();
   const r=await ask(`你在為一部互動小說寫城市裡的社群動態，讓手機裡的四個 App 像真的有人在用。繁體中文、台灣語感，短、具體、不浮誇，像真的有人在過日子。
 
 # 世界書
-${loreFor(scanBase()+' '+['x','ig','th'].map(k=>S[k].slice(0,5).map(p=>p.name+p.text).join(' ')).join(' '))}
+${loreFor(scanBase()+' '+['x','ig','th'].map(k=>S[k].slice(0,5).map(p=>p.name+p.text).join(' ')).join(' ')+' '+feat.join(' '))}
 
 # 現在
 遊戲時間：${S.time}；玩家 ${S.player} 在：${S.loc}
@@ -748,16 +777,23 @@ ${loreFor(scanBase()+' '+['x','ig','th'].map(k=>S[k].slice(0,5).map(p=>p.name+p.
 玩家認識的人：${JSON.stringify(S.contacts)}
 
 # 各 App 最近的貼文（不要重複；玩家自己發的文可以有人回應）
-川訊（短文、快訊、在地消息）：
+川訊｜風格：${sty('x')}
+最近的貼文：
 ${brief('x')}
-棲影（照片貼文）：
+
+棲影｜風格：${sty('ig')}
+最近的貼文：
 ${brief('ig')}
-川串（閒聊、碎念、長一點的心情）：
+
+川串｜風格：${sty('th')}
+最近的貼文：
 ${brief('th')}
 
 只回一個 JSON 物件：
-{"x":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文","image":"照片的一句文字描述或空字串"}],"ig":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文說明","image":"照片內容的一句文字描述"}],"threads":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文"}],"line":[{"from":"玩家認識的人的姓名","text":"訊息"}]}
-x 給 1 到 2 則，ig 給 0 到 1 則，threads 給 1 到 2 則。發文者是店家、居民、在地帳號或世界書裡的角色，同一個人的帳號名稱前後要一致。line 是認識的人主動傳給玩家的訊息，只有在劇情上說得通時才給一則，否則給空陣列；from 必須是「玩家認識的人」裡的名字。不要讓路人洩漏玩家的私下對話。`,{json:true,quick:true,lite:true});
+{"x":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文","image":"照片的一句文字描述或空字串"}],"ig":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文說明","image":"照片內容的一句文字描述"}],"threads":[{"name":"顯示名稱","handle":"英數帳號","text":"貼文","replies":[{"name":"回覆者","text":"回覆內容"}]}],"line":[{"from":"玩家認識的人的姓名","text":"訊息"}]}
+x 給 2 到 3 則，ig 給 0 到 1 則，threads 給 1 到 2 則（每則附 1 到 2 個別人的回覆）。三個 App 的文風要明顯不同，各照上面寫的風格，同一件事不要在兩個 App 用同樣的口氣講。
+${feat.length?'這次一定要讓 '+feat.join('、')+' 各發一則：選最適合他個性的 App，語氣和用詞照世界書裡他的條目；不愛用社群的人就發得短、冷淡，或只丟一張照片。劇本若替他設定了匿名小帳，就用那個小帳的公開名稱發，不洩漏本人身分。':''}其餘發文者是店家、居民、在地帳號或其他角色。
+已經存在的帳號要沿用，不要改名：${JSON.stringify(S.handles)}line 是認識的人主動傳給玩家的訊息，只有在劇情上說得通時才給一則，否則給空陣列；from 必須是「玩家認識的人」裡的名字。不要讓路人洩漏玩家的私下對話。`,{json:true,quick:true,lite:true});
   if(!r||typeof r!=='object')return;
   addPosts('x',r.x);addPosts('ig',r.ig);addPosts('th',r.threads);
   for(const m of Array.isArray(r.line)?r.line:[]){
@@ -822,6 +858,7 @@ function renderProfile(){
   }
 }
 $('profile-back').onclick=()=>show('feed');
+function rich(t){const p=el('p');for(const seg of t.split(/(#[^\s#＃]+|@[A-Za-z0-9_]+)/)){if(!seg)continue;p.append(/^[#@]/.test(seg)?el('span','tag',seg):document.createTextNode(seg))}return p}
 function renderFeed(){
   const k=curFeed,F=FEEDS[k];$('f-title').textContent=F.title;$('f-time').textContent=S.time;$('f-text').placeholder=F.ph;
   const ac0=S.accts.find(a=>a.id===S.acctOf[curFeed]);$('f-who').textContent=ac0?'@'+ac0.handle:S.player;
@@ -837,9 +874,13 @@ function renderFeed(){
       c.append(top,(p.image?shotEl(p.id,p.image):el('div','shot','［沒有照片］')),a,cap);box.append(c);continue;
     }
     const row=el('div','post'+(k==='th'?' th':''));const side=el('div','side');side.append(accountLink(avatar(p.name,mine),p));
-    const b=el('div','body');const who=el('div','who',p.name);who.append(el('span','',(mine?'':'@'+p.handle+' · ')+p.time));b.append(accountLink(who,p),el('p','',p.text));
+    const b=el('div','body');const who=el('div','who',p.name);who.append(el('span','',(mine?'':'@'+p.handle+' · ')+p.time));b.append(accountLink(who,p),k==='x'?rich(p.text):el('p','',p.text));
     if(p.image)b.append(shotEl(p.id,p.image));
-    const a=el('div','acts');a.append(el('span','',(k==='th'?'💬 ':'↻ ')+p.re),like);b.append(a);row.append(side,b);box.append(row);
+    const a=el('div','acts');const rs=p.replies||[];
+    if(k==='x')a.append(el('span','','💬 '+Math.floor(p.re/3)),el('span','','↻ '+p.re),like,el('span','','👁 '+(p.views||p.likes*12)));else a.append(el('span','','💬 '+rs.length),like);
+    b.append(a);
+    if(rs.length){const rp=el('div','replies');for(const r of rs){const d=el('div');d.append(el('b','',r.name+'　'),document.createTextNode(r.text));rp.append(d)}b.append(rp)}
+    row.append(side,b);box.append(row);
   }
 }
 $('f-post').onclick=()=>{const t=$('f-text').value.trim();if(!t)return;const ac=S.accts.find(a=>a.id===S.acctOf[curFeed]);S[curFeed].unshift({id:++uid,name:ac?ac.name||ac.handle:S.player,handle:ac?ac.handle:'me',mine:true,anon:ac?ac.persona||'匿名帳號':'',text:t,image:'',time:S.time,likes:0,re:0,liked:false});note('玩家在「'+FEEDS[curFeed].title+'」用'+(ac?'匿名帳號 @'+ac.handle:'本人帳號')+'發文：'+t);$('f-text').value='';$('f-text').style.height='auto';save();renderFeed()};
@@ -1009,12 +1050,13 @@ twoTap($('sc-del'),'刪除',()=>{S.scripts=S.scripts.filter(s=>s.id!==editId);if
 
 /* ---------- settings ---------- */
 function fillSettings(){
-  $('set-name').value=S.player;$('set-persona').value=S.persona||'';$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-storylen').value=STORY_LENGTHS[S.opts.storyLength]?S.opts.storyLength:'immersive';
+  $('set-name').value=S.player;for(const k of ['x','ig','th'])$('st-'+k).value=sty(k);$('set-persona').value=S.persona||'';$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-storylen').value=STORY_LENGTHS[S.opts.storyLength]?S.opts.storyLength:'immersive';
   $('api-on').checked=!!S.api.on;$('api-url').value=S.api.url;$('api-key').value=S.api.key;$('api-model').value=S.api.model;$('api-strip').checked=!!S.api.strip;setTimeout(()=>{fillPicks();keyInfo()},0);$('api-model2').value=S.api.model2||'';$('set-lorefull').checked=!S.opts.loreFull;$('lore-info').textContent=loreStat?'上一次生成送出：'+loreStat:'';$('api-img').value=S.api.img||'';$('set-msg').textContent='';$('img-msg').textContent='';$('set-hue').value=S.opts.theme?S.opts.theme.h:346;renderThemes();
   $('api-note').textContent=IN_CLAUDE?'你現在是在 Claude 的頁面裡看這支手機，這裡對外的連線會被擋，所以自訂 API 在這裡連不到，會用 Claude 生成。把 index.html 放到自己的網站（例如 GitHub Pages）再打開，自訂 API 就能用。':'沒勾選時無法生成。接口需要允許網頁直接連線（CORS），大部分中轉站都可以。';
   const a=$('set-av');a.textContent='';a.style.backgroundImage=IMG.me?'url("'+IMG.me+'")':'';if(!IMG.me)a.textContent=[...S.player][0]||'我';
 }
 function readSettings(){
+  S.opts.style={};for(const k of ['x','ig','th']){const v=$('st-'+k).value.trim();if(v&&v!==STYLE[k])S.opts.style[k]=v}
   S.player=$('set-name').value.trim()||'夏湘';S.persona=$('set-persona').value.trim();S.opening=$('set-open').value.trim()||S.opening;S.lore=$('set-lore').value;
   S.opts.storyLength=STORY_LENGTHS[$('set-storylen').value]?$('set-storylen').value:'immersive';S.opts.sumEvery=Math.min(60,Math.max(3,parseInt($('set-sum').value,10)||15));S.opts.loreFull=!$('set-lorefull').checked;
   S.api={on:$('api-on').checked,url:$('api-url').value.trim(),key:cleanKey($('api-key').value),model:$('api-model').value.trim(),model2:$('api-model2').value.trim(),img:$('api-img').value.trim(),list:S.api.list||[],strip:$('api-strip').checked};save();
