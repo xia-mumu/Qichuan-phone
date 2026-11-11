@@ -751,6 +751,8 @@ function addPosts(kind,list){
   }
   S[kind]=S[kind].slice(0,100);if(!(cur==='feed'&&curFeed===kind))S.unread[kind]+=n;return n;
 }
+let feedMsg='';
+const STYLE_MILD='像 X：短、快、嘴、帶梗，多半一兩句、不超過 80 字。在地快訊、迷因、嘴砲、深夜發文、hashtag、@ 別人。可以曖昧，但不露骨。';
 const STYLE={
  x:'像 X：短、快、嘴、帶梗，多半一兩句、不超過 80 字。會有在地快訊、迷因、嘴砲、深夜發文、hashtag、@ 別人。這裡也是全城最色氣的地方：深夜的慾望、曖昧、身體感、暗示性的自拍說明、成年人之間直白的玩笑和 thirst 發言都很常見。發文者都是成年人。角色本人發文時維持他的個性，不是每個人都會開黃腔，有人只會冷冷丟一句。',
  ig:'像 IG：以照片為主，說明短、有氛圍，會帶幾個 hashtag。多半是生活切片、作品、店家日常、限動感的隨手拍。',
@@ -763,7 +765,8 @@ function featured(){
   while(feat.length<2&&rest.length)feat.push(rest.splice(Math.floor(Math.random()*rest.length),1)[0]);
   return feat;
 }
-async function socialUpdate(){
+async function socialUpdate(mild){
+  const sty=k=>mild&&k==='x'?STYLE_MILD:(S.opts.style&&S.opts.style[k])||STYLE[k];
   const brief=k=>S[k].slice(0,5).map(p=>p.name+(p.anon?'（匿名帳號，大家只知道對外身份是「'+p.anon+'」，沒有人知道背後是誰）':p.handle==='me'?'（玩家本人）':'')+'：'+p.text).join('\n')||'（尚無）';
   const last=S.log.filter(x=>x.r==='dm').slice(-1)[0];const feat=featured();
   const r=await ask(`你在為一部互動小說寫城市裡的社群動態，讓手機裡的四個 App 像真的有人在用。繁體中文、台灣語感，短、具體、不浮誇，像真的有人在過日子。
@@ -796,14 +799,14 @@ x 給 2 到 3 則，ig 給 0 到 1 則，threads 給 1 到 2 則（每則附 1 �
 ${feat.length?'這次一定要讓 '+feat.join('、')+' 各發一則：選最適合他個性的 App，語氣和用詞照世界書裡他的條目；不愛用社群的人就發得短、冷淡，或只丟一張照片。劇本若替他設定了匿名小帳，就用那個小帳的公開名稱發，不洩漏本人身分。':''}其餘發文者是店家、居民、在地帳號或其他角色。
 已經存在的帳號要沿用，不要改名：${JSON.stringify(S.handles)}
 每則貼文可以加 "time" 欄位（格式同遊戲時間）：此刻正和玩家待在一起的人沒空當場發文，他的貼文要寫成稍早發的，time 填當時的時間；其他人不填就是現在。line 是認識的人主動傳給玩家的訊息，只有在劇情上說得通時才給一則，否則給空陣列；from 必須是「玩家認識的人」裡的名字。不要讓路人洩漏玩家的私下對話。`,{json:true,quick:true,lite:true});
-  if(!r||typeof r!=='object')return;
-  addPosts('x',r.x);addPosts('ig',r.ig);addPosts('th',r.threads);
+  if(!r||typeof r!=='object')return 0;
+  const added=addPosts('x',r.x)+addPosts('ig',r.ig)+addPosts('th',r.threads);
   for(const m of Array.isArray(r.line)?r.line:[]){
     if(!m||!S.contacts.some(c=>c.name===m.from)||!str(m.text,''))continue;
     (S.chats[m.from]||(S.chats[m.from]=[])).push({role:'assistant',content:m.text.trim()});note(m.from+' 傳訊息給玩家：'+m.text.trim());
     if(!(cur==='chat'&&chatWith===m.from))S.lineUnread[m.from]=(S.lineUnread[m.from]||0)+1;else renderChat();
   }
-  save();
+  save();return added;
 }
 function accountLink(node,p){
   node.classList.add('account-link');node.tabIndex=0;node.setAttribute('role','button');
@@ -867,6 +870,7 @@ function renderFeed(){
   const st=$('stories');st.hidden=k!=='ig';
   if(k==='ig'){st.textContent='';const mk=(n,mine)=>{const d=el('div');d.append(avatar(n,mine),el('span','',mine?'你的動態':n));st.append(d)};mk(S.player,true);for(const c of S.contacts.slice(0,12))mk(c.name,false)}
   const box=$('posts');box.textContent='';
+  if(feedMsg)box.append(el('div','err',feedMsg));
   if(!S[k].length)box.append(el('div','empty','還沒有貼文。按右上角的刷新按鈕，才會使用 API 生成新的社群動態。'));
   for(const p of S[k]){
     const mine=isMe(p)&&!p.anon;const like=el('button','','♥ '+(p.likes+(p.liked?1:0)));like.setAttribute('aria-pressed',p.liked?'true':'false');like.onclick=()=>{p.liked=!p.liked;save();renderFeed()};
@@ -886,7 +890,19 @@ function renderFeed(){
   }
 }
 $('f-post').onclick=()=>{const t=$('f-text').value.trim();if(!t)return;const ac=S.accts.find(a=>a.id===S.acctOf[curFeed]);S[curFeed].unshift({id:++uid,name:ac?ac.name||ac.handle:S.player,handle:ac?ac.handle:'me',mine:true,anon:ac?ac.persona||'匿名帳號':'',text:t,image:'',time:S.time,likes:0,re:0,liked:false});note('玩家在「'+FEEDS[curFeed].title+'」用'+(ac?'匿名帳號 @'+ac.handle:'本人帳號')+'發文：'+t);$('f-text').value='';$('f-text').style.height='auto';save();renderFeed()};
-$('f-refresh').onclick=()=>{const b=$('f-refresh');if(b.disabled)return;b.disabled=true;bg('社群動態更新中',async()=>{try{await socialUpdate()}finally{b.disabled=false}})};
+$('f-refresh').onclick=()=>{const b=$('f-refresh');if(b.disabled)return;b.disabled=true;feedMsg='正在更新，城裡的人正在發文…';renderFeed();
+  bg('社群動態更新中',async()=>{
+    try{
+      let n;
+      try{n=await socialUpdate(false);feedMsg=n?'':'這次模型沒有回傳任何新貼文，再按一次試試。'}
+      catch(e){
+        if(['cancelled','api_cfg','api_net','no_claude','rate_limited'].includes(e&&e.code))throw e;
+        const first=errText(e);n=await socialUpdate(true);
+        feedMsg='用目前的川訊風格生成失敗（'+first+'），這次先改用不露骨的風格更新。想保留色氣，可以到設定的「社群風格」把川訊那格調淡一點，或換一個模型。';
+      }
+    }catch(e){feedMsg='更新失敗：'+errText(e)}
+    finally{b.disabled=false;if(cur==='feed')renderFeed()}
+  })};
 
 $('f-who').onclick=()=>sheet(FEEDS[curFeed].title+'的帳號',()=>show('feed'),b=>{
   const row=(label,sub,id)=>{const c=el('div','card');const h=el('div','hd');h.append(el('b','',label),el('span','',S.acctOf[curFeed]===id?'使用中':''));c.append(h,el('p','',sub));
