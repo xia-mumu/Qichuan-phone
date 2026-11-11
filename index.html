@@ -306,6 +306,7 @@ label.tg input{width:20px;height:20px;accent-color:var(--rose)}
     <p class="note">條目用【標題】開頭，底下可以加一行「關鍵字：A,B,C」；劇情提到關鍵字時才會送出那一條。第一個 ＝＝＝ 分隔線之前的條目每次都會送。<span id="lore-info"></span></p>
     <label class="f" for="set-storylen">主線劇情長度<select id="set-storylen"><option value="short">精簡｜200～400 字</option><option value="standard">標準｜400～700 字</option><option value="immersive">沉浸｜800～1200 字（預設）</option><option value="novel">長篇小說｜1500～2000 字</option></select></label>
     <p class="note">只影響主線敘事，不改變 LINE 簡訊長度。隨時可切換，無須重新開局；劇本若有明確字數規定，則以劇本為準。字數為建議範圍，不強制灌水。</p>
+    <label class="tg" for="set-citycal"><input type="checkbox" id="set-citycal">日曆顯示棲川市的活動（六大盛事、棲大校慶）</label>
     <label class="f" for="set-sum">每幾回合自動整理一次劇情摘要<input id="set-sum" type="number" min="3" max="60" inputmode="numeric"></label>
     <h2>社群風格</h2>
     <p class="note">三個 App 各自的文風，想更色、更吵或更安靜都可以直接改。清空就回到預設。</p>
@@ -515,7 +516,7 @@ function loreFor(scan){
   loreStat='世界書 '+hit.length+'／'+parts.length+' 條';
   return (hit.map(c=>c.text).join('\n\n')+'\n\n（這次只附上和目前情境有關的條目。固定角色索引裡有、但沒有附詳細條目的人，如果這回合要讓他出現，只寫不違反索引的中性描述，不要自創外貌、家庭或背景細節。）').slice(0,60000);
 }
-const scanBase=()=>[S.loc,S.time,S.contacts.map(c=>c.name).join(' '),S.phone.join(' '),S.log.slice(-4).map(x=>x.t).join(' '),S.choices.map(c=>c.title+c.hint).join(' '),S.cal.filter(e=>{const g=gDate();return e.m===g.m&&e.d===g.d}).map(e=>e.title).join(' ')].join(' ');
+const scanBase=()=>[S.loc,S.time,S.contacts.map(c=>c.name).join(' '),S.phone.join(' '),S.log.slice(-4).map(x=>x.t).join(' '),S.choices.map(c=>c.title+c.hint).join(' '),(g=>dayEv(g.m,g.d))(gDate()).map(e=>e.title).join(' ')].join(' ');
 const activeScript=()=>S.scripts.find(s=>s.id===S.scriptId)||null;
 const sumText=()=>S.summaries.map(s=>'【第 '+s.from+'–'+s.to+' 回合】'+s.text).join('\n')||'（尚無）';
 const recentLog=()=>S.log.filter(x=>x.turn>S.sumTurn).slice(-40).map(x=>(x.r==='me'?'【玩家行動】':'【敘事】')+x.t).join('\n\n');
@@ -541,6 +542,7 @@ ${S.persona?'玩家的角色設定（照這個寫玩家的外貌、身分與既�
 已認識的人：${JSON.stringify(S.contacts)}
 目前數值：${JSON.stringify(S.stats)}
 行事曆上已有的事：${JSON.stringify(S.cal.map(e=>({date:e.m+'月'+e.d+'日',title:e.title})))}
+未來三週的城市活動（日期已照世界書的規則算好，以這個為準；活動照常舉行，但不強迫任何角色參加）：${JSON.stringify(upcomingCity(21))}
 
 # 更早的劇情摘要
 ${sumText()}
@@ -948,16 +950,39 @@ function openPhoto(p){sheet('照片','album',b=>{
 /* ---------- calendar ---------- */
 let calM=null,calSel=1;
 const gDate=()=>{const m=/(\d{1,2})月(\d{1,2})日/.exec(S.time);return m?{m:+m[1],d:+m[2]}:{m:11,d:1}};
+const MONTHLY={3:'棲大空白講堂週',4:'棲大換位盃',5:'棲大社團成果季',6:'棲大鏡湖告別週／畢業季',9:'棲大百社開箱夜／迎新',11:'棲大期中、研討會',12:'棲大未完成展'};
+let cityCache={y:0,ev:[]};
+function cityEvents(){
+  const y=S.opts.year||2026;if(cityCache.y===y)return cityCache.ev;
+  const dow=(m,d)=>new Date(y,m-1,d).getDay(),n=m=>new Date(y,m,0).getDate();
+  const sats=m=>{const a=[];for(let d=1;d<n(m);d++)if(dow(m,d)===6)a.push(d);return a};
+  const nth=(m,w,k)=>{let c=0;for(let d=1;d<=n(m);d++)if(dow(m,d)===w&&++c===k)return d;return 0};
+  const lastW=(m,w)=>{for(let d=n(m);d>=1;d--)if(dow(m,d)===w)return d;return 0};
+  const ev=[];const add=(m,d,title)=>{if(d>=1&&d<=n(m))ev.push({m,d,title,src:'棲川市'})};
+  for(const d of sats(3).slice(-2)){add(3,d,'棲川花窗節');add(3,d+1,'棲川花窗節')}
+  const s5=nth(5,6,3);for(const d of [s5-1,s5,s5+1])add(5,d,'雙岸百味祭');
+  add(8,nth(8,6,2),'南町不眠夜');
+  add(9,nth(9,6,3),'彩虹過橋節暨同志遊行');
+  const s10=nth(10,6,3);add(10,s10,'棲大校慶開門日');add(10,s10+1,'棲大校慶開門日');
+  for(const d of sats(11).slice(0,2)){add(11,d,'山城回聲祭');add(11,d+1,'山城回聲祭')}
+  add(12,lastW(12,5),'千窗留燈夜');
+  cityCache={y,ev};return ev;
+}
+const dayEv=(m,d)=>S.cal.filter(e=>e.m===m&&e.d===d).concat(S.opts.cityCal===false?[]:cityEvents().filter(e=>e.m===m&&e.d===d));
+function upcomingCity(days){
+  if(S.opts.cityCal===false)return [];const y=S.opts.year||2026,g=gDate(),t0=new Date(y,g.m-1,g.d).getTime();
+  return cityEvents().filter(e=>{const k=(new Date(y,e.m-1,e.d).getTime()-t0)/864e5;return k>=0&&k<=days}).map(e=>({date:e.m+'月'+e.d+'日',title:e.title}));
+}
 function renderCal(){
   const g=gDate();if(calM==null){calM=g.m;calSel=g.d}const y=S.opts.year||2026;
   $('cal-title').textContent=y+' 年 '+calM+' 月';$('cal-today').textContent='遊戲裡的今天：'+S.time+' · '+S.loc;
   const grid=$('cal-grid');grid.textContent='';for(const w of '一二三四五六日')grid.append(el('div','wd',w));
   const off=(new Date(y,calM-1,1).getDay()+6)%7,n=new Date(y,calM,0).getDate();if(calSel>n)calSel=n;
   for(let i=0;i<off;i++)grid.append(el('div'));
-  for(let d=1;d<=n;d++){const b=el('button','day'+(g.m===calM&&g.d===d?' today':'')+(calSel===d?' sel':''),String(d));if(S.cal.some(e=>e.m===calM&&e.d===d))b.append(el('i'));b.onclick=()=>{calSel=d;renderCal()};grid.append(b)}
-  const box=$('cal-list');box.textContent='';box.append(el('h2','',calM+' 月 '+calSel+' 日'));
-  const ev=S.cal.filter(e=>e.m===calM&&e.d===calSel);if(!ev.length)box.append(el('p','note','這天沒有安排。'));
-  for(const e of ev){const c=el('div','card');const h=el('div','hd');h.append(el('b','',e.title),el('span','',e.src));const x=el('button','link','刪除');twoTap(x,'刪除',()=>{S.cal=S.cal.filter(z=>z.id!==e.id);save();renderCal()});c.append(h,x);box.append(c)}
+  for(let d=1;d<=n;d++){const b=el('button','day'+(g.m===calM&&g.d===d?' today':'')+(calSel===d?' sel':''),String(d));if(dayEv(calM,d).length)b.append(el('i'));b.onclick=()=>{calSel=d;renderCal()};grid.append(b)}
+  const box=$('cal-list');box.textContent='';if(MONTHLY[calM]&&S.opts.cityCal!==false)box.append(el('p','note','這個月還有：'+MONTHLY[calM]+'（沒有固定日期）'));box.append(el('h2','',calM+' 月 '+calSel+' 日'));
+  const ev=dayEv(calM,calSel);if(!ev.length)box.append(el('p','note','這天沒有安排。'));
+  for(const e of ev){const c=el('div','card');const h=el('div','hd');h.append(el('b','',e.title),el('span','',e.src));c.append(h);if(e.id){const x=el('button','link','刪除');twoTap(x,'刪除',()=>{S.cal=S.cal.filter(z=>z.id!==e.id);save();renderCal()});c.append(x)}box.append(c)}
 }
 $('cal-prev').onclick=()=>{calM=(calM+10)%12+1;calSel=1;renderCal()};
 $('cal-next').onclick=()=>{calM=calM%12+1;calSel=1;renderCal()};
@@ -1068,12 +1093,13 @@ twoTap($('sc-del'),'刪除',()=>{S.scripts=S.scripts.filter(s=>s.id!==editId);if
 
 /* ---------- settings ---------- */
 function fillSettings(){
-  $('set-name').value=S.player;for(const k of ['x','ig','th'])$('st-'+k).value=sty(k);$('set-persona').value=S.persona||'';$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-storylen').value=STORY_LENGTHS[S.opts.storyLength]?S.opts.storyLength:'immersive';
+  $('set-name').value=S.player;$('set-citycal').checked=S.opts.cityCal!==false;for(const k of ['x','ig','th'])$('st-'+k).value=sty(k);$('set-persona').value=S.persona||'';$('set-open').value=S.opening;$('set-lore').value=S.lore;$('set-sum').value=S.opts.sumEvery;$('set-storylen').value=STORY_LENGTHS[S.opts.storyLength]?S.opts.storyLength:'immersive';
   $('api-on').checked=!!S.api.on;$('api-url').value=S.api.url;$('api-key').value=S.api.key;$('api-model').value=S.api.model;$('api-strip').checked=!!S.api.strip;setTimeout(()=>{fillPicks();keyInfo()},0);$('api-model2').value=S.api.model2||'';$('set-lorefull').checked=!S.opts.loreFull;$('lore-info').textContent=loreStat?'上一次生成送出：'+loreStat:'';$('api-img').value=S.api.img||'';$('set-msg').textContent='';$('img-msg').textContent='';$('set-hue').value=S.opts.theme?S.opts.theme.h:346;renderThemes();
   $('api-note').textContent=IN_CLAUDE?'你現在是在 Claude 的頁面裡看這支手機，這裡對外的連線會被擋，所以自訂 API 在這裡連不到，會用 Claude 生成。把 index.html 放到自己的網站（例如 GitHub Pages）再打開，自訂 API 就能用。':'沒勾選時無法生成。接口需要允許網頁直接連線（CORS），大部分中轉站都可以。';
   const a=$('set-av');a.textContent='';a.style.backgroundImage=IMG.me?'url("'+IMG.me+'")':'';if(!IMG.me)a.textContent=[...S.player][0]||'我';
 }
 function readSettings(){
+  S.opts.cityCal=$('set-citycal').checked;
   S.opts.style={};for(const k of ['x','ig','th']){const v=$('st-'+k).value.trim();if(v&&v!==STYLE[k])S.opts.style[k]=v}
   S.player=$('set-name').value.trim()||'夏湘';S.persona=$('set-persona').value.trim();S.opening=$('set-open').value.trim()||S.opening;S.lore=$('set-lore').value;
   S.opts.storyLength=STORY_LENGTHS[$('set-storylen').value]?$('set-storylen').value:'immersive';S.opts.sumEvery=Math.min(60,Math.max(3,parseInt($('set-sum').value,10)||15));S.opts.loreFull=!$('set-lorefull').checked;
